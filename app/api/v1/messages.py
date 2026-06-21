@@ -9,10 +9,27 @@ from app.schemas.notification import DirectMessageCreate, DirectMessageRead
 router = APIRouter()
 
 
+@router.get("/contacts")
+def list_contacts(db: DbSession, current_user: CurrentUser):
+    """Returns all active employees with user accounts for starting new conversations."""
+    from app.models.employee import Employee
+    employees = (
+        db.query(Employee.user_id, Employee.full_name, Employee.job_title, Employee.profile_image_url)
+        .filter(Employee.deleted_at.is_(None), Employee.status == "active", Employee.user_id.isnot(None))
+        .all()
+    )
+    return [
+        {"user_id": uid, "full_name": name, "job_title": title, "profile_image_url": img}
+        for uid, name, title, img in employees
+        if uid != current_user.id
+    ]
+
+
 @router.get("/conversations")
 def list_conversations(db: DbSession, current_user: CurrentUser):
     """Returns latest message per conversation partner."""
     from sqlalchemy import or_, func
+    from app.models.employee import Employee
     rows = (
         db.query(DirectMessage)
         .filter(or_(DirectMessage.from_user_id == current_user.id, DirectMessage.to_user_id == current_user.id))
@@ -24,9 +41,19 @@ def list_conversations(db: DbSession, current_user: CurrentUser):
         partner = msg.to_user_id if msg.from_user_id == current_user.id else msg.from_user_id
         if partner not in seen:
             seen[partner] = msg
+
+    partner_ids = list(seen.keys())
+    name_map = {}
+    if partner_ids:
+        emps = db.query(Employee.user_id, Employee.full_name).filter(
+            Employee.user_id.in_(partner_ids), Employee.deleted_at.is_(None)
+        ).all()
+        name_map = {uid: name for uid, name in emps}
+
     return [
         {
             "partner_id": partner_id,
+            "partner_name": name_map.get(partner_id, f"User #{partner_id}"),
             "last_message": msg.content,
             "last_at": msg.created_at,
             "unread": db.query(func.count(DirectMessage.id)).filter(

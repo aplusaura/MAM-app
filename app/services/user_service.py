@@ -48,7 +48,10 @@ def update_user(db: Session, user_id: int, payload: UserUpdate) -> User:
 
 def delete_user(db: Session, user_id: int) -> None:
     from datetime import datetime, timezone
+    from fastapi import HTTPException
     user = get_user(db, user_id)
+    if user.is_superuser:
+        raise HTTPException(status_code=403, detail="Super Admin account cannot be deleted")
     user.deleted_at = datetime.now(timezone.utc)
     db.commit()
 

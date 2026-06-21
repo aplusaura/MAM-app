@@ -140,6 +140,7 @@ export default function TasksPage() {
   const { data, isLoading } = useQuery<Task[]>({
     queryKey: ["tasks"],
     queryFn: () => get("/tasks/"),
+    refetchInterval: 30_000,
   });
 
   const { data: projects } = useQuery<Project[]>({

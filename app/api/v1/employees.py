@@ -66,13 +66,18 @@ def working_now(db: DbSession, current_user: CurrentUser):
 def leaderboard(db: DbSession, current_user: CurrentUser):
     from app.models.employee import Employee, EmployeeEvaluation
     from app.models.task import Task
+    from app.models.user import User
     from sqlalchemy import func, case
     from datetime import date
     now = date.today()
 
-    employees = db.query(Employee).filter(
-        Employee.deleted_at.is_(None), Employee.status == "active", Employee.user_id.isnot(None)
-    ).all()
+    superuser_ids = {uid for (uid,) in db.query(User.id).filter(User.is_superuser == True).all()}  # noqa: E712
+    employees = [
+        e for e in db.query(Employee).filter(
+            Employee.deleted_at.is_(None), Employee.status == "active", Employee.user_id.isnot(None)
+        ).all()
+        if e.user_id not in superuser_ids
+    ]
     user_ids = [e.user_id for e in employees]
     emp_ids = [e.id for e in employees]
     if not user_ids:
@@ -114,8 +119,8 @@ def leaderboard(db: DbSession, current_user: CurrentUser):
         completion_rate = (done / total) if total > 0 else 0.0
         task_pts = min(done / 10.0, 1.0) * 30
         completion_pts = completion_rate * 30
-        eval_pts = (avg_score / 5.0 * 25) if avg_score else 12.5
-        performance_score = round(task_pts + completion_pts + eval_pts + 15)
+        eval_pts = (avg_score / 5.0 * 25) if avg_score else 0
+        performance_score = round(task_pts + completion_pts + eval_pts)
         ranking.append({
             "id": emp.id,
             "full_name": emp.full_name,

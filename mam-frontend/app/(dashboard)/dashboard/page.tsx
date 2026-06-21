@@ -75,6 +75,7 @@ export default function DashboardPage() {
     queryKey: ["reports", "tasks"],
     queryFn: () => get<TaskStats>("/reports/tasks/stats"),
     staleTime: 60 * 1000,
+    refetchInterval: 30_000,
   });
 
   const { data: projects } = useQuery<Project[]>({
@@ -95,6 +96,7 @@ export default function DashboardPage() {
     queryKey: ["tasks"],
     queryFn: () => get<Task[]>("/tasks/"),
     staleTime: 30 * 1000,
+    refetchInterval: 30_000,
   });
 
   interface WorkingNowEmployee { id: number; full_name: string; job_title?: string; profile_image_url?: string | null; current_task?: { id: number; title: string; task_code?: string } | null; }

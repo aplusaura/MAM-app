@@ -202,6 +202,7 @@ ROLE_PERMISSIONS: dict[str, list[str]] = {
         Permissions.VIEW_CALENDAR,
         Permissions.UPLOAD_ATTACHMENTS,
         Permissions.VIEW_OWN_PROFILE, Permissions.EDIT_OWN_PROFILE,
+        Permissions.ACCESS_AI_TOOLS,
     ],
     "video_editor": [
         Permissions.VIEW_ASSIGNED_CLIENTS,
@@ -307,6 +308,7 @@ ROLE_PERMISSIONS.update({
         Permissions.VIEW_CALENDAR, Permissions.CREATE_EVENT,
         Permissions.UPLOAD_ATTACHMENTS,
         Permissions.VIEW_OWN_PROFILE, Permissions.EDIT_OWN_PROFILE,
+        Permissions.ACCESS_AI_TOOLS,
     ],
     "moderator": [
         Permissions.VIEW_ASSIGNED_CLIENTS,

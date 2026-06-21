@@ -31,8 +31,8 @@ export function NotificationDropdown() {
   const { data: notificationsData } = useQuery<Notification[]>({
     queryKey: ["notifications"],
     queryFn: () => get("/notifications/"),
-    refetchInterval: 120_000,
-    staleTime: 60_000,
+    refetchInterval: 30_000,
+    staleTime: 15_000,
   });
 
   // --- Tasks (for overdue) — only fetch when dropdown is open ---
@@ -102,8 +102,13 @@ export function NotificationDropdown() {
     return unreadNotifCount + unreadMessageCount + overdueTasks.length;
   }, [unreadNotifCount, unreadMessageCount, overdueTasks.length]);
 
+  const unreadNotifications = useMemo(
+    () => notifications.filter((n) => !n.is_read).slice(0, 10),
+    [notifications]
+  );
+
   const hasAnything =
-    overdueTasks.length > 0 || recentActivity.length > 0 || unreadMessageCount > 0;
+    unreadNotifications.length > 0 || overdueTasks.length > 0 || recentActivity.length > 0 || unreadMessageCount > 0;
 
   // Play sound when new unread notifications arrive
   const prevUnreadRef = useRef<number | null>(null);
@@ -185,7 +190,38 @@ export function NotificationDropdown() {
               </div>
             )}
 
-            {/* Section 1: Overdue Tasks */}
+            {/* Section: Notifications */}
+            {unreadNotifications.length > 0 && (
+              <>
+                <SectionHeader>Notifications</SectionHeader>
+                <div className="divide-y divide-gray-50 dark:divide-gray-700/50">
+                  {unreadNotifications.map((notif) => (
+                    <div
+                      key={notif.id}
+                      onClick={() => { setOpen(false); router.push("/alerts"); }}
+                      className="flex items-start gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 cursor-pointer transition-colors"
+                    >
+                      <span className="mt-1.5 h-2 w-2 rounded-full bg-blue-500 shrink-0" />
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-medium leading-snug text-gray-900 dark:text-gray-100 truncate">
+                          {notif.title}
+                        </p>
+                        {notif.body && (
+                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 line-clamp-2">
+                            {notif.body}
+                          </p>
+                        )}
+                        <p className="text-xs text-gray-400 mt-0.5">
+                          {formatDistanceToNow(new Date(notif.created_at), { addSuffix: true })}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+
+            {/* Section: Overdue Tasks */}
             {overdueTasks.length > 0 && (
               <>
                 <SectionHeader>Overdue Tasks</SectionHeader>

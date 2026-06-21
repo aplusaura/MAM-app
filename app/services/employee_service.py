@@ -121,7 +121,12 @@ def update_employee(db: Session, employee_id: int, payload: EmployeeUpdate) -> E
 
 
 def delete_employee(db: Session, employee_id: int) -> None:
+    from fastapi import HTTPException
     emp = get_employee(db, employee_id)
+    if emp.user_id:
+        linked_user = db.query(User).filter(User.id == emp.user_id).first()
+        if linked_user and linked_user.is_superuser:
+            raise HTTPException(status_code=403, detail="Super Admin account cannot be deleted")
     emp.deleted_at = datetime.now(timezone.utc)
     db.commit()
 

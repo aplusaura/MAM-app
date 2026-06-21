@@ -328,6 +328,7 @@ export interface DirectMessage {
 
 export interface Conversation {
   partner_id: number;
+  partner_name: string;
   last_message: string;
   last_at: string;
   unread: number;

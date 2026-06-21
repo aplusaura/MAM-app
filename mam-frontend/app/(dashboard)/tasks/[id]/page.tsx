@@ -333,8 +333,8 @@ export default function TaskDetailPage() {
 
   // Workflow action visibility
   const isSuperAdmin = user?.is_superuser;
-  const canTL = isSuperAdmin || hasPermission("approve_tasks");
-  const canAM = isSuperAdmin || hasPermission("manage_clients");
+  const canTL = isSuperAdmin || hasPermission("edit_task") || hasPermission("assign_task");
+  const canAM = isSuperAdmin || hasPermission("edit_client") || hasPermission("view_all_clients");
 
   const showSubmitDelivery = task && task.status === "in_progress";
   const showTLApprove = task && task.status === "waiting_approval" && canTL;

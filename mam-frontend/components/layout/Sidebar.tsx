@@ -34,8 +34,8 @@ const navItems = [
   { href: "/finance",    label: "Finance",      icon: DollarSign,      permissions: ["view_finance"] },
   { href: "/reports",    label: "Reports",      icon: BarChart3,       permissions: ["view_reports"] },
   { href: "/calendar",    label: "Calendar",     icon: CalendarDays,  permissions: null },
-  { href: "/content-planner", label: "Content",  icon: BookOpen,        permissions: null },
-  { href: "/ai",          label: "AI Features",  icon: Sparkles,     permissions: null },
+  { href: "/content-planner", label: "Content",  icon: BookOpen,        permissions: ["view_content"] },
+  { href: "/ai",          label: "AI Features",  icon: Sparkles,     permissions: ["access_ai_tools"] },
   { href: "/leaderboard", label: "Leaderboard",  icon: Trophy,        permissions: null },
   { href: "/settings",    label: "Settings",     icon: Settings,      permissions: null },
 ];

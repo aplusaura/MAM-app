@@ -128,7 +128,8 @@ export default function SettingsPage() {
       <main className="flex-1 p-3 sm:p-6 bg-gray-50 min-h-full">
         <div className="max-w-4xl mx-auto space-y-6">
 
-          {/* Agency Profile Card */}
+          {/* Agency Profile Card — Super Admin only */}
+          {isSuperAdmin && (
           <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
             {/* Header band */}
             <div className="bg-gradient-to-r from-indigo-600 to-blue-500 px-6 py-5">
@@ -142,7 +143,7 @@ export default function SettingsPage() {
                     <p className="text-sm text-indigo-100">{agencyInfo.tagline}</p>
                   </div>
                 </div>
-                {isSuperAdmin && !agencyEdit && (
+                {!agencyEdit && (
                   <button onClick={() => { setAgencyForm(loadAgency()); setAgencyEdit(true); }}
                     className="flex items-center gap-1.5 text-xs text-white/80 hover:text-white bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-lg transition-colors">
                     <Pencil className="h-3.5 w-3.5" /> Edit
@@ -243,14 +244,13 @@ export default function SettingsPage() {
                     )}
                   </div>
                   {!agencyInfo.email && !agencyInfo.phone && !agencyInfo.website && !agencyInfo.address && !agencyInfo.about && (
-                    <p className="text-sm text-gray-400 italic">
-                      {isSuperAdmin ? "Click Edit to fill in agency information." : "No agency info set up yet."}
-                    </p>
+                    <p className="text-sm text-gray-400 italic">Click Edit to fill in agency information.</p>
                   )}
                 </div>
               )}
             </div>
           </div>
+          )}
 
           {/* My Account */}
           <div className="bg-white rounded-xl border border-gray-100 shadow-sm">
@@ -303,7 +303,8 @@ export default function SettingsPage() {
             </div>
           </div>
 
-          {/* Email Notifications */}
+          {/* Email Notifications — Super Admin only */}
+          {isSuperAdmin && (
           <div className="bg-white rounded-xl border border-gray-100 shadow-sm">
             <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-2 justify-between">
               <div className="flex items-center gap-2">
@@ -394,6 +395,7 @@ export default function SettingsPage() {
               )}
             </div>
           </div>
+          )}
 
           {/* Activity Log (Super Admin only) */}
           {isSuperAdmin && (

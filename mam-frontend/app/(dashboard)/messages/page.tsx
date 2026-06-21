@@ -9,7 +9,14 @@ import { Input } from "@/components/ui/input";
 import { useAuthStore } from "@/store/auth";
 import { Send, MessageSquare } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
-import type { DirectMessage, Conversation, Employee } from "@/types";
+import type { DirectMessage, Conversation } from "@/types";
+
+interface Contact {
+  user_id: number;
+  full_name: string;
+  job_title: string | null;
+  profile_image_url: string | null;
+}
 
 export default function MessagesPage() {
   const { user: me } = useAuthStore();
@@ -18,16 +25,13 @@ export default function MessagesPage() {
   const [text, setText] = useState("");
   const bottomRef = useRef<HTMLDivElement>(null);
 
-  const { data: employees } = useQuery<Employee[]>({
-    queryKey: ["employees"],
-    queryFn: () => get("/employees/"),
+  const { data: contacts } = useQuery<Contact[]>({
+    queryKey: ["message-contacts"],
+    queryFn: () => get("/messages/contacts"),
     staleTime: 60000,
   });
 
-  // Only active employees who have a linked user account
-  const activeEmployees = (employees ?? []).filter((e) => e.status === "active" && e.user_id);
-  // Map user_id → full_name for display
-  const nameByUserId = Object.fromEntries(activeEmployees.map((e) => [e.user_id!, e.full_name]));
+  const nameByUserId = Object.fromEntries((contacts ?? []).map((c) => [c.user_id, c.full_name]));
 
   const { data: conversations, refetch: refetchConvs } = useQuery<Conversation[]>({
     queryKey: ["conversations"],
@@ -55,11 +59,15 @@ export default function MessagesPage() {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  const partnerName = (id: number) => nameByUserId[id] ?? `User #${id}`;
+  const partnerName = (id: number) => {
+    const fromContacts = nameByUserId[id];
+    if (fromContacts) return fromContacts;
+    const conv = (conversations ?? []).find((c) => c.partner_id === id);
+    return conv?.partner_name ?? `User #${id}`;
+  };
 
-  // Show only active employees (excluding self) as possible conversation partners
-  const otherEmployees = activeEmployees.filter((e) => e.user_id !== me?.id);
   const conversationPartnerIds = new Set((conversations ?? []).map((c) => c.partner_id));
+  const otherContacts = (contacts ?? []).filter((c) => !conversationPartnerIds.has(c.user_id));
 
   return (
     <>
@@ -91,18 +99,18 @@ export default function MessagesPage() {
                 </div>
               </button>
             ))}
-            {/* New conversation starters — only active employees without existing chats */}
-            {otherEmployees.filter((e) => !conversationPartnerIds.has(e.user_id!)).map((e) => (
+            {/* New conversation starters — contacts without existing chats */}
+            {otherContacts.map((c) => (
               <button
-                key={e.user_id}
-                onClick={() => setActivePartnerId(e.user_id!)}
-                className={`w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors ${activePartnerId === e.user_id ? "bg-blue-50" : ""}`}
+                key={c.user_id}
+                onClick={() => setActivePartnerId(c.user_id)}
+                className={`w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors ${activePartnerId === c.user_id ? "bg-blue-50" : ""}`}
               >
                 <div className="flex items-center gap-2">
                   <div className="h-8 w-8 rounded-full bg-gray-100 text-gray-600 flex items-center justify-center text-xs font-bold shrink-0">
-                    {e.full_name.slice(0, 2).toUpperCase()}
+                    {c.full_name.slice(0, 2).toUpperCase()}
                   </div>
-                  <p className="text-xs text-gray-600 truncate">{e.full_name}</p>
+                  <p className="text-xs text-gray-600 truncate">{c.full_name}</p>
                 </div>
               </button>
             ))}
