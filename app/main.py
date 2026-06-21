@@ -27,24 +27,33 @@ if prod_origin:
     ALLOWED_ORIGINS.append(prod_origin)
 
 def _is_allowed_origin(origin: str) -> bool:
-    return origin in ALLOWED_ORIGINS
+    if origin in ALLOWED_ORIGINS:
+        return True
+    # Allow all Vercel preview/production deployments and any configured subdomain
+    if origin.endswith(".vercel.app"):
+        return True
+    return False
 
 class DynamicCORSMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         origin = request.headers.get("origin", "")
-        if request.method == "OPTIONS" and _is_allowed_origin(origin):
+        is_allowed = _is_allowed_origin(origin)
+        # Always respond to OPTIONS preflight — even for unknown origins, return 200
+        # so the browser can make the actual request (we gate auth there instead)
+        if request.method == "OPTIONS":
+            allow_origin = origin if is_allowed else "*"
             return Response(
                 status_code=200,
                 headers={
-                    "Access-Control-Allow-Origin": origin,
-                    "Access-Control-Allow-Credentials": "true",
+                    "Access-Control-Allow-Origin": allow_origin,
+                    "Access-Control-Allow-Credentials": "true" if is_allowed else "false",
                     "Access-Control-Allow-Methods": "DELETE, GET, HEAD, OPTIONS, PATCH, POST, PUT",
-                    "Access-Control-Allow-Headers": "*",
+                    "Access-Control-Allow-Headers": "Authorization, Content-Type, Accept",
                     "Access-Control-Max-Age": "600",
                 },
             )
         response = await call_next(request)
-        if _is_allowed_origin(origin):
+        if is_allowed:
             response.headers["Access-Control-Allow-Origin"] = origin
             response.headers["Access-Control-Allow-Credentials"] = "true"
         return response

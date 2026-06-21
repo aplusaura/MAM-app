@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { get, post, del } from "@/lib/api";
+import { toast } from "sonner";
 import { MessageSquare, Send, X, Trash2 } from "lucide-react";
 import { useAuthStore } from "@/store/auth";
 import { formatDistanceToNow, isToday } from "date-fns";
@@ -47,6 +48,10 @@ export function ChatPopover() {
       setText("");
       qc.invalidateQueries({ queryKey: ["messages", activePartnerId] });
       qc.invalidateQueries({ queryKey: ["conversations"] });
+    },
+    onError: (err: unknown) => {
+      const msg = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail ?? "Failed to send message";
+      toast.error(msg);
     },
   });
 

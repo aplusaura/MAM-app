@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { useAuthStore } from "@/store/auth";
 import { Send, MessageSquare, Trash2 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import { toast } from "sonner";
 import type { DirectMessage, Conversation } from "@/types";
 
 interface Contact {
@@ -52,6 +53,10 @@ export default function MessagesPage() {
       setText("");
       qc.invalidateQueries({ queryKey: ["messages", activePartnerId] });
       refetchConvs();
+    },
+    onError: (err: unknown) => {
+      const msg = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail ?? "Failed to send message";
+      toast.error(msg);
     },
   });
 
