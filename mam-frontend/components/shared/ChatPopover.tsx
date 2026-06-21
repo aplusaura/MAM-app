@@ -2,8 +2,8 @@
 
 import { useState, useRef, useEffect, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { get, post } from "@/lib/api";
-import { MessageSquare, Send, X } from "lucide-react";
+import { get, post, del } from "@/lib/api";
+import { MessageSquare, Send, X, Trash2 } from "lucide-react";
 import { useAuthStore } from "@/store/auth";
 import { formatDistanceToNow, isToday } from "date-fns";
 import Link from "next/link";
@@ -45,6 +45,14 @@ export function ChatPopover() {
     mutationFn: () => post(`/messages/${activePartnerId}`, { content: text }),
     onSuccess: () => {
       setText("");
+      qc.invalidateQueries({ queryKey: ["messages", activePartnerId] });
+      qc.invalidateQueries({ queryKey: ["conversations"] });
+    },
+  });
+
+  const deleteMsgMutation = useMutation({
+    mutationFn: (msgId: number) => del(`/messages/message/${msgId}`),
+    onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["messages", activePartnerId] });
       qc.invalidateQueries({ queryKey: ["conversations"] });
     },
@@ -131,7 +139,10 @@ export function ChatPopover() {
               {/* Thread header */}
               <div className="flex items-center gap-2 px-3 py-2 border-b border-gray-100 dark:border-gray-700 shrink-0">
                 <button
-                  onClick={() => setActivePartnerId(null)}
+                  onClick={() => {
+                    setActivePartnerId(null);
+                    qc.invalidateQueries({ queryKey: ["conversations"] });
+                  }}
                   className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 text-xs"
                 >
                   ← Back
@@ -144,17 +155,29 @@ export function ChatPopover() {
               <div className="flex-1 overflow-y-auto p-3 space-y-2">
                 {(messages ?? []).map((msg) => {
                   const isMe = msg.from_user_id === me?.id;
+                  const deleted = msg.is_deleted;
                   return (
-                    <div key={msg.id} className={`flex ${isMe ? "justify-end" : "justify-start"}`}>
+                    <div key={msg.id} className={`flex group ${isMe ? "justify-end" : "justify-start"}`}>
+                      {isMe && !deleted && (
+                        <button
+                          onClick={() => deleteMsgMutation.mutate(msg.id)}
+                          className="opacity-0 group-hover:opacity-100 mr-1 self-center p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-opacity"
+                          title="Delete message"
+                        >
+                          <Trash2 className="h-3 w-3 text-gray-400 hover:text-red-500" />
+                        </button>
+                      )}
                       <div
                         className={`max-w-[75%] px-3 py-1.5 rounded-2xl text-sm ${
-                          isMe
+                          deleted
+                            ? "bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500 italic"
+                            : isMe
                             ? "bg-blue-600 text-white rounded-br-sm"
                             : "bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-bl-sm"
                         }`}
                       >
                         <p>{msg.content}</p>
-                        <p className={`text-[10px] mt-0.5 ${isMe ? "text-blue-200" : "text-gray-400"}`}>
+                        <p className={`text-[10px] mt-0.5 ${isMe && !deleted ? "text-blue-200" : "text-gray-400"}`}>
                           {formatTime(msg.created_at)}
                         </p>
                       </div>
@@ -190,7 +213,11 @@ export function ChatPopover() {
                 (conversations ?? []).map((conv) => (
                   <button
                     key={conv.partner_id}
-                    onClick={() => setActivePartnerId(conv.partner_id)}
+                    onClick={() => {
+                      setActivePartnerId(conv.partner_id);
+                      // Messages get marked read by GET /messages/{id} — invalidate after a brief moment
+                      setTimeout(() => qc.invalidateQueries({ queryKey: ["conversations"] }), 500);
+                    }}
                     className="w-full text-left px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
                   >
                     <div className="flex items-center gap-3">

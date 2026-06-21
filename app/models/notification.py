@@ -57,6 +57,7 @@ class DirectMessage(Base, TimestampMixin):
     )
     content: Mapped[str] = mapped_column(Text, nullable=False)
     is_read: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    is_deleted: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
 
     sender: Mapped["User"] = relationship("User", foreign_keys=[from_user_id])
     recipient: Mapped["User"] = relationship("User", foreign_keys=[to_user_id])

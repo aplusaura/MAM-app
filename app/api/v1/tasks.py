@@ -238,8 +238,10 @@ def submit_delivery(task_id: int, db: DbSession, current_user: CurrentUser):
 
 @router.post("/{task_id}/approve")
 def approve_task(task_id: int, db: DbSession, current_user: CurrentUser):
+    from app.api.deps import _user_has_permission
     task = _get_task_or_404(db, task_id)
-    if task.assigned_to and task.assigned_to == current_user.id:
+    is_privileged = current_user.is_superuser or _user_has_permission(current_user, "edit_task", db)
+    if task.assigned_to and task.assigned_to == current_user.id and not is_privileged:
         raise HTTPException(status_code=403, detail="You cannot approve your own task")
     prev = task.status
     next_status = "am_review" if prev == "waiting_approval" else "done"

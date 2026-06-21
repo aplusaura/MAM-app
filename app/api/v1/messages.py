@@ -112,3 +112,33 @@ def send_message(user_id: int, payload: DirectMessageCreate, db: DbSession, curr
     db.commit()
     db.refresh(msg)
     return msg
+
+
+@router.delete("/message/{message_id}")
+def delete_message(message_id: int, db: DbSession, current_user: CurrentUser):
+    """Soft-delete a message. Only the sender can delete their own messages."""
+    msg = db.query(DirectMessage).filter(DirectMessage.id == message_id).first()
+    if not msg:
+        raise HTTPException(status_code=404, detail="Message not found")
+    if msg.from_user_id != current_user.id and not current_user.is_superuser:
+        raise HTTPException(status_code=403, detail="You can only delete your own messages")
+    msg.is_deleted = True
+    msg.content = "This message was deleted"
+    db.commit()
+    return {"ok": True}
+
+
+@router.delete("/chat/{partner_id}")
+def delete_chat(partner_id: int, db: DbSession, current_user: CurrentUser):
+    """Super Admin only: permanently delete all messages between current user and partner."""
+    if not current_user.is_superuser:
+        raise HTTPException(status_code=403, detail="Only Super Admin can delete entire chats")
+    from sqlalchemy import or_
+    db.query(DirectMessage).filter(
+        or_(
+            (DirectMessage.from_user_id == current_user.id) & (DirectMessage.to_user_id == partner_id),
+            (DirectMessage.from_user_id == partner_id) & (DirectMessage.to_user_id == current_user.id),
+        )
+    ).delete(synchronize_session=False)
+    db.commit()
+    return {"ok": True}

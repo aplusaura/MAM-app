@@ -323,6 +323,7 @@ export interface DirectMessage {
   to_user_id: number;
   content: string;
   is_read: boolean;
+  is_deleted?: boolean;
   created_at: string;
 }
 

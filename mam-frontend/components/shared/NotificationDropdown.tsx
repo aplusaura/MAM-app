@@ -119,6 +119,14 @@ export function NotificationDropdown() {
     return "/alerts";
   };
 
+  // Auto-mark notifications as read when dropdown is opened
+  useEffect(() => {
+    if (open && unreadNotifCount > 0) {
+      markAllReadMutation.mutate();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
+
   // Play sound when new unread notifications arrive
   const prevUnreadRef = useRef<number | null>(null);
   useEffect(() => {

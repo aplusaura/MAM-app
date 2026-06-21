@@ -110,6 +110,7 @@ export default function EmployeeProfilePage() {
   const [editMode, setEditMode] = useState(false);
   const [editSection, setEditSection] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"info" | "employment" | "skills" | "tasks" | "notes" | "report" | "permissions" | "leaves" | "kpis" | "reviews">("info");
+  const [taskStatusFilter, setTaskStatusFilter] = useState<string>("all");
   const [reportPeriod, setReportPeriod] = useState<"3" | "6" | "12" | "all">("6");
   const [editForm, setEditForm] = useState<EditForm>({
     full_name: "", job_title: "", phone: "", employment_type: "",
@@ -926,36 +927,55 @@ export default function EmployeeProfilePage() {
             {activeTab === "tasks" && (
               <Card className="rounded-xl border-gray-100 shadow-sm overflow-hidden">
                 <CardContent className="p-0">
-                  {empTasks.length === 0 ? (
-                    <p className="text-sm text-gray-400 p-6">No tasks assigned.</p>
-                  ) : (
-                    <table className="w-full text-sm">
-                      <thead>
-                        <tr className="border-b border-gray-100">
-                          <th className="text-left px-5 py-3.5 text-[11px] font-semibold text-gray-400 uppercase tracking-widest">Task</th>
-                          <th className="text-left px-5 py-3.5 text-[11px] font-semibold text-gray-400 uppercase tracking-widest">Type</th>
-                          <th className="text-left px-5 py-3.5 text-[11px] font-semibold text-gray-400 uppercase tracking-widest">Status</th>
-                          <th className="text-left px-5 py-3.5 text-[11px] font-semibold text-gray-400 uppercase tracking-widest">Deadline</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {empTasks.map((t) => (
-                          <tr key={t.id} onClick={() => router.push(`/tasks/${t.id}`)} className="border-b border-gray-50 last:border-0 hover:bg-blue-50/30 transition-colors cursor-pointer">
-                            <td className="px-5 py-3.5 font-medium text-gray-800 hover:text-blue-600">{t.title}</td>
-                            <td className="px-5 py-3.5 text-gray-600">{t.task_type?.replace(/_/g, " ") ?? "—"}</td>
-                            <td className="px-5 py-3.5"><StatusBadge value={t.status} /></td>
-                            <td className="px-5 py-3.5">
-                              {t.due_date ? (
-                                <span className={new Date(t.due_date) < new Date() && !["done", "cancelled"].includes(t.status) ? "text-red-600 font-medium" : "text-gray-600"}>
-                                  {format(new Date(t.due_date), "MMM d, yyyy")}
-                                </span>
-                              ) : "—"}
-                            </td>
+                  <div className="flex items-center gap-2 px-5 py-3 border-b border-gray-100">
+                    <span className="text-xs text-gray-500 font-medium">Filter:</span>
+                    {["all", "in_progress", "waiting_approval", "done", "revisions_needed", "paused", "cancelled"].map((s) => (
+                      <button
+                        key={s}
+                        onClick={() => setTaskStatusFilter(s)}
+                        className={`text-xs px-2.5 py-1 rounded-full transition-colors ${
+                          taskStatusFilter === s
+                            ? "bg-blue-600 text-white"
+                            : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                        }`}
+                      >
+                        {s === "all" ? "All" : s.replace(/_/g, " ")}
+                      </button>
+                    ))}
+                  </div>
+                  {(() => {
+                    const filtered = taskStatusFilter === "all" ? empTasks : empTasks.filter((t) => t.status === taskStatusFilter);
+                    return filtered.length === 0 ? (
+                      <p className="text-sm text-gray-400 p-6">No tasks {taskStatusFilter !== "all" ? `with status "${taskStatusFilter.replace(/_/g, " ")}"` : "assigned"}.</p>
+                    ) : (
+                      <table className="w-full text-sm">
+                        <thead>
+                          <tr className="border-b border-gray-100">
+                            <th className="text-left px-5 py-3.5 text-[11px] font-semibold text-gray-400 uppercase tracking-widest">Task</th>
+                            <th className="text-left px-5 py-3.5 text-[11px] font-semibold text-gray-400 uppercase tracking-widest">Type</th>
+                            <th className="text-left px-5 py-3.5 text-[11px] font-semibold text-gray-400 uppercase tracking-widest">Status</th>
+                            <th className="text-left px-5 py-3.5 text-[11px] font-semibold text-gray-400 uppercase tracking-widest">Deadline</th>
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  )}
+                        </thead>
+                        <tbody>
+                          {filtered.map((t) => (
+                            <tr key={t.id} onClick={() => router.push(`/tasks/${t.id}`)} className="border-b border-gray-50 last:border-0 hover:bg-blue-50/30 transition-colors cursor-pointer">
+                              <td className="px-5 py-3.5 font-medium text-gray-800 hover:text-blue-600">{t.title}</td>
+                              <td className="px-5 py-3.5 text-gray-600">{t.task_type?.replace(/_/g, " ") ?? "—"}</td>
+                              <td className="px-5 py-3.5"><StatusBadge value={t.status} /></td>
+                              <td className="px-5 py-3.5">
+                                {t.due_date ? (
+                                  <span className={new Date(t.due_date) < new Date() && !["done", "cancelled"].includes(t.status) ? "text-red-600 font-medium" : "text-gray-600"}>
+                                    {format(new Date(t.due_date), "MMM d, yyyy")}
+                                  </span>
+                                ) : "—"}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    );
+                  })()}
                 </CardContent>
               </Card>
             )}

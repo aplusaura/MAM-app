@@ -2,12 +2,12 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { get, post } from "@/lib/api";
+import { get, post, del } from "@/lib/api";
 import { TopBar } from "@/components/layout/TopBar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuthStore } from "@/store/auth";
-import { Send, MessageSquare } from "lucide-react";
+import { Send, MessageSquare, Trash2 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import type { DirectMessage, Conversation } from "@/types";
 
@@ -55,6 +55,23 @@ export default function MessagesPage() {
     },
   });
 
+  const deleteMsgMutation = useMutation({
+    mutationFn: (msgId: number) => del(`/messages/message/${msgId}`),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["messages", activePartnerId] });
+      refetchConvs();
+    },
+  });
+
+  const deleteChatMutation = useMutation({
+    mutationFn: () => del(`/messages/chat/${activePartnerId}`),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["messages", activePartnerId] });
+      refetchConvs();
+      setActivePartnerId(null);
+    },
+  });
+
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
@@ -82,7 +99,10 @@ export default function MessagesPage() {
             {(conversations ?? []).map((conv) => (
               <button
                 key={conv.partner_id}
-                onClick={() => setActivePartnerId(conv.partner_id)}
+                onClick={() => {
+                  setActivePartnerId(conv.partner_id);
+                  setTimeout(() => refetchConvs(), 500);
+                }}
                 className={`w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors ${activePartnerId === conv.partner_id ? "bg-blue-50" : ""}`}
               >
                 <div className="flex items-center gap-2">
@@ -124,17 +144,46 @@ export default function MessagesPage() {
               <div className="h-8 w-8 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-xs font-bold">
                 {partnerName(activePartnerId).slice(0, 2).toUpperCase()}
               </div>
-              <p className="text-sm font-semibold text-gray-800">{partnerName(activePartnerId)}</p>
+              <p className="text-sm font-semibold text-gray-800 flex-1">{partnerName(activePartnerId)}</p>
+              {me?.is_superuser && (
+                <button
+                  onClick={() => {
+                    if (confirm("Delete entire conversation? This cannot be undone.")) {
+                      deleteChatMutation.mutate();
+                    }
+                  }}
+                  className="text-xs text-red-500 hover:text-red-700 flex items-center gap-1 transition-colors"
+                  title="Delete entire conversation"
+                >
+                  <Trash2 className="h-3.5 w-3.5" /> Delete chat
+                </button>
+              )}
             </div>
 
             <div className="flex-1 overflow-y-auto px-5 py-4 space-y-3">
               {(messages ?? []).map((msg) => {
                 const isMe = msg.from_user_id === me?.id;
+                const deleted = msg.is_deleted;
                 return (
-                  <div key={msg.id} className={`flex ${isMe ? "justify-end" : "justify-start"}`}>
-                    <div className={`max-w-xs rounded-2xl px-4 py-2.5 text-sm ${isMe ? "bg-blue-600 text-white rounded-br-sm" : "bg-white border border-gray-100 text-gray-800 rounded-bl-sm shadow-sm"}`}>
+                  <div key={msg.id} className={`flex group ${isMe ? "justify-end" : "justify-start"}`}>
+                    {isMe && !deleted && (
+                      <button
+                        onClick={() => deleteMsgMutation.mutate(msg.id)}
+                        className="opacity-0 group-hover:opacity-100 mr-1 self-center p-1 rounded hover:bg-gray-100 transition-opacity"
+                        title="Delete message"
+                      >
+                        <Trash2 className="h-3.5 w-3.5 text-gray-400 hover:text-red-500" />
+                      </button>
+                    )}
+                    <div className={`max-w-xs rounded-2xl px-4 py-2.5 text-sm ${
+                      deleted
+                        ? "bg-gray-100 text-gray-400 italic"
+                        : isMe
+                        ? "bg-blue-600 text-white rounded-br-sm"
+                        : "bg-white border border-gray-100 text-gray-800 rounded-bl-sm shadow-sm"
+                    }`}>
                       <p>{msg.content}</p>
-                      <p className={`text-[10px] mt-1 ${isMe ? "text-blue-200" : "text-gray-400"}`}>
+                      <p className={`text-[10px] mt-1 ${isMe && !deleted ? "text-blue-200" : "text-gray-400"}`}>
                         {formatDistanceToNow(new Date(msg.created_at), { addSuffix: true })}
                       </p>
                     </div>

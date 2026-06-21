@@ -400,8 +400,9 @@ export default function TaskDetailPage() {
 
   const isSelfAssigned = task?.assigned_to != null && (task.assigned_to === user?.id || task.assigned_to === user?.employee_id);
   const showSubmitDelivery = task && task.status === "in_progress";
-  const showTLApprove = task && task.status === "waiting_approval" && canTL && !isSelfAssigned;
-  const showAMActions = task && task.status === "am_review" && canAM && !isSelfAssigned;
+  // TLs/AMs/SuperAdmins can approve their own tasks; self-approval only blocked for normal employees
+  const showTLApprove = task && task.status === "waiting_approval" && canTL;
+  const showAMActions = task && task.status === "am_review" && canAM;
   const showSendModerator = task && task.status === "am_review" && canAM;
   const showMarkPublished = task && task.status === "moderator_review" && (isSuperAdmin || hasPermission("publish_content"));
 
