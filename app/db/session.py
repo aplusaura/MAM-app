@@ -1,5 +1,6 @@
 import os
 from sqlalchemy import create_engine
+from sqlalchemy.pool import NullPool
 from sqlalchemy.orm import sessionmaker, Session
 from typing import Generator
 
@@ -7,10 +8,10 @@ from app.core.config import settings
 
 _is_serverless = os.environ.get("VERCEL", "") == "1"
 
-_engine_kwargs = {"pool_pre_ping": True}
+_engine_kwargs: dict = {"pool_pre_ping": True}
 if _is_serverless:
-    _engine_kwargs["pool_size"] = 1
-    _engine_kwargs["max_overflow"] = 0
+    _engine_kwargs["poolclass"] = NullPool
+    _engine_kwargs.pop("pool_pre_ping", None)
 else:
     _engine_kwargs["pool_size"] = 10
     _engine_kwargs["max_overflow"] = 20
