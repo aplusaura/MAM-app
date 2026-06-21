@@ -40,6 +40,8 @@ class Settings(BaseSettings):
 
 import warnings
 _settings = Settings()
+if _settings.CORS_ORIGINS_STR:
+    _settings.CORS_ORIGINS = [o.strip() for o in _settings.CORS_ORIGINS_STR.split(",") if o.strip()]
 if _settings.SECRET_KEY == "change-this-secret-key":
     warnings.warn("WARNING: Using default SECRET_KEY — set a secure value in .env before going to production!", stacklevel=2)
 settings = _settings

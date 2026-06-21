@@ -11,7 +11,16 @@ from app.core.config import settings
 from app.core.permissions import Permissions
 from app.ai import weekly_report, workload_distribution, delay_detection, smart_search
 
-client = genai.Client(api_key=settings.GEMINI_API_KEY)
+_client = None
+
+
+def _get_client():
+    global _client
+    if _client is None:
+        if not settings.GEMINI_API_KEY:
+            raise HTTPException(status_code=503, detail="Gemini API key not configured")
+        _client = genai.Client(api_key=settings.GEMINI_API_KEY)
+    return _client
 
 router = APIRouter()
 
@@ -32,7 +41,7 @@ def _sanitize_for_prompt(text: str, max_length: int = 500) -> str:
 def _llm(prompt: str, max_tokens: int = 200, temperature: float = 0.5, timeout: int = 90) -> str:
     """Call Google Gemini API using new google-genai library."""
     try:
-        response = client.models.generate_content(
+        response = _get_client().models.generate_content(
             model=settings.GEMINI_MODEL,
             contents=prompt,
             config={

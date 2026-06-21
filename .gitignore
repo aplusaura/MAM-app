@@ -42,3 +42,5 @@ dev.log
 
 # Claude
 .claude/
+
+.vercel
