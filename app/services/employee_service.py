@@ -2,7 +2,7 @@ import secrets
 import string
 from datetime import datetime, timezone
 from typing import Optional
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from app.models.employee import Employee
 from app.models.user import User
@@ -15,7 +15,11 @@ def list_employees(
     db: Session, skip: int = 0, limit: int = 100,
     status: Optional[str] = None, department_id: Optional[int] = None,
 ):
-    q = db.query(Employee).filter(Employee.deleted_at.is_(None))
+    q = (
+        db.query(Employee)
+        .options(joinedload(Employee.department), joinedload(Employee.role))
+        .filter(Employee.deleted_at.is_(None))
+    )
     if status:
         q = q.filter(Employee.status == status)
     if department_id:
@@ -24,9 +28,12 @@ def list_employees(
 
 
 def get_employee(db: Session, employee_id: int) -> Employee:
-    emp = db.query(Employee).filter(
-        Employee.id == employee_id, Employee.deleted_at.is_(None)
-    ).first()
+    emp = (
+        db.query(Employee)
+        .options(joinedload(Employee.department), joinedload(Employee.role))
+        .filter(Employee.id == employee_id, Employee.deleted_at.is_(None))
+        .first()
+    )
     if not emp:
         raise NotFoundError("Employee not found")
     return emp

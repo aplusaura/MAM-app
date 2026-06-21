@@ -4,7 +4,7 @@ from threading import Lock
 
 from fastapi import APIRouter, HTTPException, Request
 
-from app.api.deps import DbSession, CurrentUser, _user_has_permission
+from app.api.deps import DbSession, CurrentUser, get_all_user_permissions
 from app.schemas.auth import (
     LoginRequest,
     MeRead,
@@ -57,7 +57,8 @@ def logout(current_user: CurrentUser):
 
 @router.get("/me", response_model=MeRead)
 def get_me(current_user: CurrentUser, db: DbSession):
-    employee = db.query(Employee).filter(Employee.user_id == current_user.id).first()
+    from sqlalchemy.orm import joinedload
+    employee = db.query(Employee).options(joinedload(Employee.role)).filter(Employee.user_id == current_user.id).first()
     full_name = employee.full_name if employee else current_user.email
     role_slug = None
     employee_id = None
@@ -69,11 +70,7 @@ def get_me(current_user: CurrentUser, db: DbSession):
     if current_user.is_superuser:
         permission_slugs = [slug for _, slug, _ in ALL_PERMISSIONS]
     else:
-        permission_slugs = [
-            slug
-            for _, slug, _ in ALL_PERMISSIONS
-            if _user_has_permission(current_user, slug, db)
-        ]
+        permission_slugs = get_all_user_permissions(current_user, db)
 
     return MeRead(
         id=current_user.id,

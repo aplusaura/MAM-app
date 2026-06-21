@@ -43,11 +43,6 @@ def get_current_active_superuser(
 
 
 def _user_has_permission(user: User, permission_slug: str, db: Session) -> bool:
-    """
-    Check permission with override logic:
-    1. user_permissions (explicit grant/revoke) takes precedence
-    2. Falls back to role permissions via employee.role_id
-    """
     override = (
         db.query(UserPermission)
         .join(Permission, UserPermission.permission_id == Permission.id)
@@ -60,7 +55,6 @@ def _user_has_permission(user: User, permission_slug: str, db: Session) -> bool:
     if override is not None:
         return override.granted
 
-    # Check role permissions via employee record
     employee = db.query(Employee).filter(Employee.user_id == user.id).first()
     if not employee or not employee.role_id:
         return False
@@ -75,6 +69,33 @@ def _user_has_permission(user: User, permission_slug: str, db: Session) -> bool:
         .first()
     )
     return has_role_perm is not None
+
+
+def get_all_user_permissions(user: User, db: Session) -> list[str]:
+    """Batch-fetch all permission slugs for a user in 2 queries instead of N."""
+    # 1. Get all user-level overrides
+    overrides = (
+        db.query(Permission.slug, UserPermission.granted)
+        .join(Permission, UserPermission.permission_id == Permission.id)
+        .filter(UserPermission.user_id == user.id)
+        .all()
+    )
+    granted = {slug for slug, is_granted in overrides if is_granted}
+    revoked = {slug for slug, is_granted in overrides if not is_granted}
+
+    # 2. Get role permissions
+    employee = db.query(Employee).filter(Employee.user_id == user.id).first()
+    role_perms: set[str] = set()
+    if employee and employee.role_id:
+        role_perms = {
+            slug for (slug,) in
+            db.query(Permission.slug)
+            .join(RolePermission, RolePermission.permission_id == Permission.id)
+            .filter(RolePermission.role_id == employee.role_id)
+            .all()
+        }
+
+    return list((role_perms | granted) - revoked)
 
 
 def require_permission(permission_slug: str):

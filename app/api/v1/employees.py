@@ -66,45 +66,63 @@ def working_now(db: DbSession, current_user: CurrentUser):
 def leaderboard(db: DbSession, current_user: CurrentUser):
     from app.models.employee import Employee, EmployeeEvaluation
     from app.models.task import Task
-    from sqlalchemy import func
+    from sqlalchemy import func, case
     from datetime import date
     now = date.today()
-    employees = db.query(Employee).filter(Employee.deleted_at.is_(None), Employee.status == "active").all()
-    ranking = []
-    for emp in employees:
-        if not emp.user_id:
-            continue
-        tasks_done = db.query(func.count(Task.id)).filter(
-            Task.assigned_to == emp.user_id,
-            Task.status == "done",
+
+    employees = db.query(Employee).filter(
+        Employee.deleted_at.is_(None), Employee.status == "active", Employee.user_id.isnot(None)
+    ).all()
+    user_ids = [e.user_id for e in employees]
+    emp_ids = [e.id for e in employees]
+    if not user_ids:
+        return []
+
+    task_rows = (
+        db.query(
+            Task.assigned_to,
+            func.count(Task.id).label("total"),
+            func.sum(case((Task.status == "done", 1), else_=0)).label("done"),
+        )
+        .filter(
+            Task.assigned_to.in_(user_ids),
             Task.deleted_at.is_(None),
             func.extract("month", Task.updated_at) == now.month,
             func.extract("year", Task.updated_at) == now.year,
-        ).scalar() or 0
-        total_tasks_month = db.query(func.count(Task.id)).filter(
-            Task.assigned_to == emp.user_id,
-            Task.deleted_at.is_(None),
-            func.extract("month", Task.updated_at) == now.month,
-            func.extract("year", Task.updated_at) == now.year,
-        ).scalar() or 0
-        avg_score = db.query(func.avg(EmployeeEvaluation.score)).filter(
-            EmployeeEvaluation.employee_id == emp.id,
+        )
+        .group_by(Task.assigned_to)
+        .all()
+    )
+    task_map = {uid: (int(total), int(done)) for uid, total, done in task_rows}
+
+    eval_rows = (
+        db.query(EmployeeEvaluation.employee_id, func.avg(EmployeeEvaluation.score))
+        .filter(
+            EmployeeEvaluation.employee_id.in_(emp_ids),
             EmployeeEvaluation.period_month == now.month,
             EmployeeEvaluation.period_year == now.year,
-        ).scalar()
-        completion_rate = (tasks_done / total_tasks_month) if total_tasks_month > 0 else 0.0
-        task_pts = min(tasks_done / 10.0, 1.0) * 30
+        )
+        .group_by(EmployeeEvaluation.employee_id)
+        .all()
+    )
+    eval_map = {eid: float(avg) for eid, avg in eval_rows}
+
+    ranking = []
+    for emp in employees:
+        total, done = task_map.get(emp.user_id, (0, 0))
+        avg_score = eval_map.get(emp.id)
+        completion_rate = (done / total) if total > 0 else 0.0
+        task_pts = min(done / 10.0, 1.0) * 30
         completion_pts = completion_rate * 30
-        eval_pts = (float(avg_score) / 5.0 * 25) if avg_score else 12.5
-        attendance_pts = 15
-        performance_score = round(task_pts + completion_pts + eval_pts + attendance_pts)
+        eval_pts = (avg_score / 5.0 * 25) if avg_score else 12.5
+        performance_score = round(task_pts + completion_pts + eval_pts + 15)
         ranking.append({
             "id": emp.id,
             "full_name": emp.full_name,
             "job_title": emp.job_title,
             "profile_image_url": emp.profile_image_url,
-            "tasks_done": tasks_done,
-            "avg_score": round(float(avg_score), 2) if avg_score else None,
+            "tasks_done": done,
+            "avg_score": round(avg_score, 2) if avg_score else None,
             "performance_score": performance_score,
         })
     ranking.sort(key=lambda x: x["performance_score"], reverse=True)
