@@ -38,8 +38,11 @@ class Settings(BaseSettings):
     model_config = {"env_file": ".env", "env_file_encoding": "utf-8", "extra": "ignore"}
 
 
+import os
 import warnings
 _settings = Settings()
+if os.environ.get("VERCEL", "") == "1":
+    _settings.UPLOAD_DIR = f"/tmp/{_settings.UPLOAD_DIR}"
 if _settings.CORS_ORIGINS_STR:
     _settings.CORS_ORIGINS = [o.strip() for o in _settings.CORS_ORIGINS_STR.split(",") if o.strip()]
 if _settings.SECRET_KEY == "change-this-secret-key":
