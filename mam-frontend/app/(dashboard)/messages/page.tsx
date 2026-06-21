@@ -48,15 +48,22 @@ export default function MessagesPage() {
   });
 
   const sendMutation = useMutation({
-    mutationFn: () => post(`/messages/${activePartnerId}`, { content: text }),
+    mutationFn: () => {
+      const content = text.trim();
+      if (!content) throw new Error("Message is empty");
+      if (!activePartnerId) throw new Error("No partner selected");
+      return post(`/messages/${activePartnerId}`, { content });
+    },
     onSuccess: () => {
       setText("");
       qc.invalidateQueries({ queryKey: ["messages", activePartnerId] });
       refetchConvs();
     },
     onError: (err: unknown) => {
-      const msg = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail ?? "Failed to send message";
-      toast.error(msg);
+      const e = err as { response?: { status?: number; data?: { detail?: string } }; message?: string };
+      const detail = e?.response?.data?.detail || e?.message || "Failed to send message";
+      toast.error(`Error: ${detail} (${e?.response?.status ?? "network"})`);
+      console.error("Send message error:", err);
     },
   });
 
@@ -203,7 +210,10 @@ export default function MessagesPage() {
 
             <div className="px-5 py-3 border-t border-gray-100 bg-white">
               <form
-                onSubmit={(e) => { e.preventDefault(); if (text.trim()) sendMutation.mutate(); }}
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  if (text.trim() && activePartnerId) sendMutation.mutate();
+                }}
                 className="flex items-center gap-2"
               >
                 <Input
@@ -216,6 +226,14 @@ export default function MessagesPage() {
                   <Send className="h-4 w-4" />
                 </Button>
               </form>
+              {sendMutation.isError && (
+                <p className="text-xs text-red-500 mt-1">
+                  {(() => {
+                    const e = sendMutation.error as { response?: { status?: number; data?: { detail?: string } }; message?: string };
+                    return e?.response?.data?.detail || e?.response?.status || e?.message || "Unknown error";
+                  })()}
+                </p>
+              )}
             </div>
           </div>
         ) : (
