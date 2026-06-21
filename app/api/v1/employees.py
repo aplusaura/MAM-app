@@ -33,6 +33,18 @@ def list_employees(
     return employee_service.list_employees(db, skip=skip, limit=limit, status=status, department_id=department_id)
 
 
+@router.get("/names")
+def employee_names(db: DbSession, current_user: CurrentUser):
+    """Lightweight name lookup for any authenticated user."""
+    from app.models.employee import Employee
+    rows = (
+        db.query(Employee.id, Employee.user_id, Employee.full_name)
+        .filter(Employee.deleted_at.is_(None))
+        .all()
+    )
+    return [{"id": eid, "user_id": uid, "full_name": name} for eid, uid, name in rows]
+
+
 @router.get("/working-now")
 def working_now(db: DbSession, current_user: CurrentUser):
     from app.models.employee import Employee

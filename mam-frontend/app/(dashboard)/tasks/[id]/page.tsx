@@ -153,6 +153,13 @@ export default function TaskDetailPage() {
     what_was_shot: "", location: "", shoot_date: "",
     crew_present: "", what_happened: "", raw_footage_notes: "",
   });
+  const [editMode, setEditMode] = useState(false);
+  const [editForm, setEditForm] = useState({
+    title: "", description: "", priority: "medium", status: "",
+    assigned_to: "" as string, project_id: "" as string,
+    due_date: "", start_date: "", estimated_hours: "" as string,
+    task_type: "",
+  });
 
   const { data: task, isLoading } = useQuery<TaskDetail>({
     queryKey: ["task", taskId],
@@ -162,8 +169,14 @@ export default function TaskDetailPage() {
 
   const { data: employees } = useQuery<Employee[]>({
     queryKey: ["employees"],
-    queryFn: () => get("/employees/"),
+    queryFn: () => get("/employees/").catch(() => []),
     staleTime: 60000,
+  });
+
+  const { data: employeeNames } = useQuery<{ id: number; user_id: number | null; full_name: string }[]>({
+    queryKey: ["employee-names"],
+    queryFn: () => get("/employees/names"),
+    staleTime: 120000,
   });
 
   const { data: projects } = useQuery<Project[]>({
@@ -224,6 +237,49 @@ export default function TaskDetailPage() {
     },
     onError: (err) => toast.error(getErrorMessage(err)),
   });
+
+  const editMutation = useMutation({
+    mutationFn: (body: object) => patch(`/tasks/${taskId}`, body),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["task", taskId] });
+      qc.invalidateQueries({ queryKey: ["tasks"] });
+      setEditMode(false);
+      toast.success("Task updated");
+    },
+    onError: (err) => toast.error(getErrorMessage(err)),
+  });
+
+  const handleSaveEdit = () => {
+    const body: Record<string, unknown> = {};
+    if (editForm.title.trim()) body.title = editForm.title.trim();
+    if (editForm.description !== (task?.description ?? "")) body.description = editForm.description;
+    if (editForm.priority) body.priority = editForm.priority;
+    if (editForm.assigned_to) body.assigned_to = Number(editForm.assigned_to);
+    if (editForm.project_id) body.project_id = Number(editForm.project_id);
+    else if (task?.project_id && !editForm.project_id) body.project_id = null;
+    if (editForm.due_date) body.due_date = editForm.due_date;
+    if (editForm.start_date) body.start_date = editForm.start_date;
+    if (editForm.estimated_hours) body.estimated_hours = Number(editForm.estimated_hours);
+    if (editForm.task_type) body.task_type = editForm.task_type;
+    editMutation.mutate(body);
+  };
+
+  const openEditMode = () => {
+    if (!task) return;
+    setEditForm({
+      title: task.title,
+      description: task.description ?? "",
+      priority: task.priority,
+      status: task.status,
+      assigned_to: task.assigned_to?.toString() ?? "",
+      project_id: task.project_id?.toString() ?? "",
+      due_date: task.due_date ?? "",
+      start_date: task.start_date ?? "",
+      estimated_hours: task.estimated_hours?.toString() ?? "",
+      task_type: task.task_type ?? "",
+    });
+    setEditMode(true);
+  };
 
   const statusMutation = useMutation({
     mutationFn: (status: string) => patch(`/tasks/${taskId}`, { status }),
@@ -323,8 +379,14 @@ export default function TaskDetailPage() {
     }
   };
 
-  const assigneeName = (id?: number) =>
-    employees?.find((e) => e.user_id === id || e.id === id)?.full_name ?? `#${id}`;
+  const assigneeName = (id?: number) => {
+    if (id == null) return "—";
+    const fromEmp = employees?.find((e) => e.user_id === id || e.id === id);
+    if (fromEmp) return fromEmp.full_name;
+    const fromNames = employeeNames?.find((e) => e.user_id === id || e.id === id);
+    if (fromNames) return fromNames.full_name;
+    return `Employee #${id}`;
+  };
 
   const projectName = (id?: number) =>
     projects?.find((p) => p.id === id)?.name ?? `#${id}`;
@@ -336,9 +398,10 @@ export default function TaskDetailPage() {
   const canTL = isSuperAdmin || hasPermission("edit_task") || hasPermission("assign_task");
   const canAM = isSuperAdmin || hasPermission("edit_client") || hasPermission("view_all_clients");
 
+  const isSelfAssigned = task?.assigned_to != null && (task.assigned_to === user?.id || task.assigned_to === user?.employee_id);
   const showSubmitDelivery = task && task.status === "in_progress";
-  const showTLApprove = task && task.status === "waiting_approval" && canTL;
-  const showAMActions = task && task.status === "am_review" && canAM;
+  const showTLApprove = task && task.status === "waiting_approval" && canTL && !isSelfAssigned;
+  const showAMActions = task && task.status === "am_review" && canAM && !isSelfAssigned;
   const showSendModerator = task && task.status === "am_review" && canAM;
   const showMarkPublished = task && task.status === "moderator_review" && (isSuperAdmin || hasPermission("publish_content"));
 
@@ -416,6 +479,11 @@ export default function TaskDetailPage() {
                   </h1>
                 </div>
                 <div className="flex items-center gap-2 flex-wrap">
+                  {(canTL || isSuperAdmin) && !editMode && (
+                    <Button size="sm" variant="outline" onClick={openEditMode} className="gap-1.5">
+                      <Pencil className="w-3.5 h-3.5" /> Edit
+                    </Button>
+                  )}
                   <StatusBadge value={task.status} />
                   <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${PRIORITY_COLOR[task.priority] ?? PRIORITY_COLOR.medium}`}>
                     {task.priority}
@@ -493,6 +561,86 @@ export default function TaskDetailPage() {
                     <Button size="sm" variant="outline" onClick={() => { setShowRejectInput(false); setRejectNotes(""); }}>
                       Cancel
                     </Button>
+                  </div>
+                </div>
+              )}
+
+              {/* Edit form */}
+              {editMode && (
+                <div className="mt-4 p-4 rounded-xl bg-white dark:bg-gray-900 border border-blue-200 dark:border-blue-800 space-y-3">
+                  <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">Edit Task Details</h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="sm:col-span-2">
+                      <label className="text-xs text-gray-500 mb-1 block">Title *</label>
+                      <Input value={editForm.title} onChange={(e) => setEditForm(f => ({ ...f, title: e.target.value }))} />
+                    </div>
+                    <div className="sm:col-span-2">
+                      <label className="text-xs text-gray-500 mb-1 block">Description</label>
+                      <Textarea value={editForm.description} onChange={(e) => setEditForm(f => ({ ...f, description: e.target.value }))} rows={3} className="text-sm resize-none" />
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-500 mb-1 block">Assigned to</label>
+                      <select className="w-full h-9 border border-gray-200 dark:border-gray-700 rounded-lg px-3 text-sm bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        value={editForm.assigned_to} onChange={(e) => setEditForm(f => ({ ...f, assigned_to: e.target.value }))}>
+                        <option value="">Unassigned</option>
+                        {(employeeNames ?? []).map((emp) => (
+                          <option key={emp.id} value={emp.user_id ?? emp.id}>{emp.full_name}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-500 mb-1 block">Project</label>
+                      <select className="w-full h-9 border border-gray-200 dark:border-gray-700 rounded-lg px-3 text-sm bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        value={editForm.project_id} onChange={(e) => setEditForm(f => ({ ...f, project_id: e.target.value }))}>
+                        <option value="">None</option>
+                        {(projects ?? []).map((p) => (
+                          <option key={p.id} value={p.id}>{p.name}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-500 mb-1 block">Priority</label>
+                      <select className="w-full h-9 border border-gray-200 dark:border-gray-700 rounded-lg px-3 text-sm bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        value={editForm.priority} onChange={(e) => setEditForm(f => ({ ...f, priority: e.target.value }))}>
+                        <option value="low">Low</option>
+                        <option value="medium">Medium</option>
+                        <option value="high">High</option>
+                        <option value="urgent">Urgent</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-500 mb-1 block">Task Type</label>
+                      <select className="w-full h-9 border border-gray-200 dark:border-gray-700 rounded-lg px-3 text-sm bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        value={editForm.task_type} onChange={(e) => setEditForm(f => ({ ...f, task_type: e.target.value }))}>
+                        <option value="">General</option>
+                        <option value="design">Design</option>
+                        <option value="video_editing">Video Editing</option>
+                        <option value="motion_graphics">Motion Graphics</option>
+                        <option value="shooting">Shooting</option>
+                        <option value="social_media">Social Media</option>
+                        <option value="content_writing">Content Writing</option>
+                        <option value="web_development">Web Development</option>
+                        <option value="seo">SEO</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-500 mb-1 block">Due Date</label>
+                      <Input type="date" value={editForm.due_date} onChange={(e) => setEditForm(f => ({ ...f, due_date: e.target.value }))} />
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-500 mb-1 block">Start Date</label>
+                      <Input type="date" value={editForm.start_date} onChange={(e) => setEditForm(f => ({ ...f, start_date: e.target.value }))} />
+                    </div>
+                    <div>
+                      <label className="text-xs text-gray-500 mb-1 block">Estimated Hours</label>
+                      <Input type="number" min={0} step={0.5} value={editForm.estimated_hours} onChange={(e) => setEditForm(f => ({ ...f, estimated_hours: e.target.value }))} />
+                    </div>
+                  </div>
+                  <div className="flex gap-2 pt-1">
+                    <Button size="sm" onClick={handleSaveEdit} disabled={!editForm.title.trim() || editMutation.isPending}>
+                      {editMutation.isPending ? "Saving…" : "Save Changes"}
+                    </Button>
+                    <Button size="sm" variant="outline" onClick={() => setEditMode(false)}>Cancel</Button>
                   </div>
                 </div>
               )}

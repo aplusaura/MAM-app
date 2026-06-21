@@ -110,6 +110,15 @@ export function NotificationDropdown() {
   const hasAnything =
     unreadNotifications.length > 0 || overdueTasks.length > 0 || recentActivity.length > 0 || unreadMessageCount > 0;
 
+  const getNotifRoute = (notif: Notification): string => {
+    if (notif.entity_type === "task" && notif.entity_id) return `/tasks/${notif.entity_id}`;
+    if (notif.entity_type === "project" && notif.entity_id) return `/projects/${notif.entity_id}`;
+    if (notif.entity_type === "invoice" && notif.entity_id) return `/finance`;
+    if (notif.entity_type === "leave_request") return `/employees`;
+    if (notif.entity_type === "message") return `/messages`;
+    return "/alerts";
+  };
+
   // Play sound when new unread notifications arrive
   const prevUnreadRef = useRef<number | null>(null);
   useEffect(() => {
@@ -198,7 +207,7 @@ export function NotificationDropdown() {
                   {unreadNotifications.map((notif) => (
                     <div
                       key={notif.id}
-                      onClick={() => { setOpen(false); router.push("/alerts"); }}
+                      onClick={() => { setOpen(false); router.push(getNotifRoute(notif)); }}
                       className="flex items-start gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 cursor-pointer transition-colors"
                     >
                       <span className="mt-1.5 h-2 w-2 rounded-full bg-blue-500 shrink-0" />

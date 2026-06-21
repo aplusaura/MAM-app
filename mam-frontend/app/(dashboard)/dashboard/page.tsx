@@ -34,12 +34,26 @@ export default function DashboardPage() {
   const [qaModal, setQaModal] = useState<QAModal>(null);
   const [qaName, setQaName] = useState("");
   const [qaExtra, setQaExtra] = useState("");
+  const [qaTaskForm, setQaTaskForm] = useState({
+    description: "", assigned_to: "", project_id: "",
+    due_date: "", start_date: "", estimated_hours: "", task_type: "",
+  });
 
   const qaMutation = useMutation({
     mutationFn: () => {
       if (qaModal === "client") return post("/clients/", { company_name: qaName });
       if (qaModal === "lead") return post("/leads/", { lead_name: qaName, company_name: qaExtra || undefined });
-      if (qaModal === "task") return post("/tasks/", { title: qaName, priority: qaExtra || "medium" });
+      if (qaModal === "task") {
+        const taskBody: Record<string, unknown> = { title: qaName, priority: qaExtra || "medium" };
+        if (qaTaskForm.description) taskBody.description = qaTaskForm.description;
+        if (qaTaskForm.assigned_to) taskBody.assigned_to = Number(qaTaskForm.assigned_to);
+        if (qaTaskForm.project_id) taskBody.project_id = Number(qaTaskForm.project_id);
+        if (qaTaskForm.due_date) taskBody.due_date = qaTaskForm.due_date;
+        if (qaTaskForm.start_date) taskBody.start_date = qaTaskForm.start_date;
+        if (qaTaskForm.estimated_hours) taskBody.estimated_hours = Number(qaTaskForm.estimated_hours);
+        if (qaTaskForm.task_type) taskBody.task_type = qaTaskForm.task_type;
+        return post("/tasks/", taskBody);
+      }
       if (qaModal === "project") return post("/projects/", { name: qaName, priority: qaExtra || "medium" });
       return Promise.reject(new Error("Unknown modal"));
     },
@@ -50,6 +64,7 @@ export default function DashboardPage() {
       if (qaModal) qc.invalidateQueries({ queryKey: keyMap[qaModal] });
       toast.success(`${qaModal?.charAt(0).toUpperCase()}${qaModal?.slice(1)} created`);
       setQaModal(null); setQaName(""); setQaExtra("");
+      setQaTaskForm({ description: "", assigned_to: "", project_id: "", due_date: "", start_date: "", estimated_hours: "", task_type: "" });
     },
     onError: () => toast.error("Failed to create"),
   });
@@ -80,16 +95,21 @@ export default function DashboardPage() {
 
   const { data: projects } = useQuery<Project[]>({
     queryKey: ["projects"],
-    queryFn: () => get<Project[]>("/projects/"),
-    enabled: isAdmin || isManager,
+    queryFn: () => get<Project[]>("/projects/").catch(() => []),
     staleTime: 30 * 1000,
   });
 
   const { data: employees } = useQuery<Employee[]>({
     queryKey: ["employees"],
-    queryFn: () => get<Employee[]>("/employees/"),
+    queryFn: () => get<Employee[]>("/employees/").catch(() => []),
     enabled: isAdmin || isManager,
     staleTime: 60 * 1000,
+  });
+
+  const { data: employeeNames } = useQuery<{ id: number; user_id: number | null; full_name: string }[]>({
+    queryKey: ["employee-names"],
+    queryFn: () => get("/employees/names"),
+    staleTime: 120000,
   });
 
   const { data: tasks } = useQuery<Task[]>({
@@ -375,7 +395,7 @@ export default function DashboardPage() {
 
         {/* Quick Action Modal */}
         <Dialog open={!!qaModal} onOpenChange={(v) => !v && setQaModal(null)}>
-          <DialogContent className="max-w-sm">
+          <DialogContent className={qaModal === "task" ? "max-w-lg" : "max-w-sm"}>
             <DialogHeader>
               <DialogTitle>
                 {qaModal === "client" && "New Client"}
@@ -396,7 +416,6 @@ export default function DashboardPage() {
                   autoFocus
                   value={qaName}
                   onChange={(e) => setQaName(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && qaName.trim() && qaMutation.mutate()}
                   placeholder={
                     qaModal === "client" ? "e.g. Acme Corp" :
                     qaModal === "lead" ? "e.g. Tech Startup" :
@@ -415,7 +434,7 @@ export default function DashboardPage() {
                 <div>
                   <Label className="text-xs text-gray-500 mb-1 block">Priority</Label>
                   <select
-                    className="w-full h-9 border border-gray-200 rounded-lg px-3 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full h-9 border border-gray-200 dark:border-gray-700 rounded-lg px-3 text-sm bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     value={qaExtra}
                     onChange={(e) => setQaExtra(e.target.value)}
                   >
@@ -425,6 +444,72 @@ export default function DashboardPage() {
                     <option value="urgent">Urgent</option>
                   </select>
                 </div>
+              )}
+              {qaModal === "task" && (
+                <>
+                  <div>
+                    <Label className="text-xs text-gray-500 mb-1 block">Description</Label>
+                    <textarea
+                      className="w-full min-h-[60px] border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                      value={qaTaskForm.description}
+                      onChange={(e) => setQaTaskForm(f => ({ ...f, description: e.target.value }))}
+                      placeholder="Task description…"
+                      rows={2}
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <Label className="text-xs text-gray-500 mb-1 block">Assign to</Label>
+                      <select className="w-full h-9 border border-gray-200 dark:border-gray-700 rounded-lg px-3 text-sm bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        value={qaTaskForm.assigned_to} onChange={(e) => setQaTaskForm(f => ({ ...f, assigned_to: e.target.value }))}>
+                        <option value="">Unassigned</option>
+                        {(employeeNames ?? []).map((emp) => (
+                          <option key={emp.id} value={emp.user_id ?? emp.id}>{emp.full_name}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <Label className="text-xs text-gray-500 mb-1 block">Project</Label>
+                      <select className="w-full h-9 border border-gray-200 dark:border-gray-700 rounded-lg px-3 text-sm bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        value={qaTaskForm.project_id} onChange={(e) => setQaTaskForm(f => ({ ...f, project_id: e.target.value }))}>
+                        <option value="">None</option>
+                        {(projects ?? []).map((p) => (
+                          <option key={p.id} value={p.id}>{p.name}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <Label className="text-xs text-gray-500 mb-1 block">Task Type</Label>
+                      <select className="w-full h-9 border border-gray-200 dark:border-gray-700 rounded-lg px-3 text-sm bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        value={qaTaskForm.task_type} onChange={(e) => setQaTaskForm(f => ({ ...f, task_type: e.target.value }))}>
+                        <option value="">General</option>
+                        <option value="design">Design</option>
+                        <option value="video_editing">Video Editing</option>
+                        <option value="motion_graphics">Motion Graphics</option>
+                        <option value="shooting">Shooting</option>
+                        <option value="social_media">Social Media</option>
+                        <option value="content_writing">Content Writing</option>
+                        <option value="web_development">Web Development</option>
+                        <option value="seo">SEO</option>
+                      </select>
+                    </div>
+                    <div>
+                      <Label className="text-xs text-gray-500 mb-1 block">Estimated Hours</Label>
+                      <Input type="number" min={0} step={0.5} value={qaTaskForm.estimated_hours}
+                        onChange={(e) => setQaTaskForm(f => ({ ...f, estimated_hours: e.target.value }))} placeholder="e.g. 4" />
+                    </div>
+                    <div>
+                      <Label className="text-xs text-gray-500 mb-1 block">Due Date</Label>
+                      <Input type="date" value={qaTaskForm.due_date}
+                        onChange={(e) => setQaTaskForm(f => ({ ...f, due_date: e.target.value }))} />
+                    </div>
+                    <div>
+                      <Label className="text-xs text-gray-500 mb-1 block">Start Date</Label>
+                      <Input type="date" value={qaTaskForm.start_date}
+                        onChange={(e) => setQaTaskForm(f => ({ ...f, start_date: e.target.value }))} />
+                    </div>
+                  </div>
+                </>
               )}
               <div className="flex justify-end gap-2 pt-1">
                 <Button variant="outline" size="sm" onClick={() => setQaModal(null)}>Cancel</Button>

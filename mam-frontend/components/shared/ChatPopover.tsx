@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { get, post } from "@/lib/api";
 import { MessageSquare, Send, X } from "lucide-react";
 import { useAuthStore } from "@/store/auth";
 import { formatDistanceToNow, isToday } from "date-fns";
 import Link from "next/link";
+import { playSound } from "@/lib/sounds";
 import type { Conversation, DirectMessage } from "@/types";
 
 interface User { id: number; email: string; full_name?: string | null; }
@@ -30,7 +31,7 @@ export function ChatPopover() {
   const { data: conversations } = useQuery<Conversation[]>({
     queryKey: ["conversations"],
     queryFn: () => get("/messages/conversations"),
-    refetchInterval: open ? 30_000 : false,
+    refetchInterval: 30_000,
   });
 
   const { data: messages } = useQuery<DirectMessage[]>({
@@ -49,7 +50,18 @@ export function ChatPopover() {
     },
   });
 
-  const unreadCount = (conversations ?? []).reduce((s, c) => s + (c.unread ?? 0), 0);
+  const unreadCount = useMemo(
+    () => (conversations ?? []).reduce((s, c) => s + (c.unread ?? 0), 0),
+    [conversations]
+  );
+
+  const prevUnreadRef = useRef<number | null>(null);
+  useEffect(() => {
+    if (prevUnreadRef.current !== null && unreadCount > prevUnreadRef.current) {
+      playSound("notification");
+    }
+    prevUnreadRef.current = unreadCount;
+  }, [unreadCount]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });

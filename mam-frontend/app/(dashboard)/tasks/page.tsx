@@ -150,7 +150,13 @@ export default function TasksPage() {
 
   const { data: employees } = useQuery<Employee[]>({
     queryKey: ["employees"],
-    queryFn: () => get("/employees/"),
+    queryFn: () => get("/employees/").catch(() => []),
+  });
+
+  const { data: employeeNames } = useQuery<{ id: number; user_id: number | null; full_name: string }[]>({
+    queryKey: ["employee-names"],
+    queryFn: () => get("/employees/names"),
+    staleTime: 120000,
   });
 
   const createMutation = useMutation({
@@ -342,7 +348,15 @@ export default function TasksPage() {
     .filter((t) => t.title.toLowerCase().includes(search.toLowerCase()));
 
   const projectMap = Object.fromEntries((projects ?? []).map((p) => [p.id, p.name]));
-  const employeeMap = Object.fromEntries((employees ?? []).map((e) => [e.user_id ?? e.id, e.full_name]));
+  const employeeMap: Record<number, string> = {};
+  for (const e of employeeNames ?? []) {
+    if (e.user_id) employeeMap[e.user_id] = e.full_name;
+    employeeMap[e.id] = e.full_name;
+  }
+  for (const e of employees ?? []) {
+    if (e.user_id) employeeMap[e.user_id] = e.full_name;
+    employeeMap[e.id] = e.full_name;
+  }
 
   const KANBAN_COLUMNS: KanbanColumn[] = [
     { id: "todo", label: "To Do", color: "bg-gray-400" },

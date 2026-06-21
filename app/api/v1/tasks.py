@@ -2,7 +2,7 @@ import os
 import uuid
 from datetime import datetime, timezone
 from typing import List, Optional
-from fastapi import APIRouter, Depends, Query, HTTPException, UploadFile, File
+from fastapi import APIRouter, Body, Depends, Query, HTTPException, UploadFile, File
 
 from app.api.deps import DbSession, CurrentUser, require_permission
 from app.core.config import settings
@@ -239,6 +239,8 @@ def submit_delivery(task_id: int, db: DbSession, current_user: CurrentUser):
 @router.post("/{task_id}/approve")
 def approve_task(task_id: int, db: DbSession, current_user: CurrentUser):
     task = _get_task_or_404(db, task_id)
+    if task.assigned_to and task.assigned_to == current_user.id:
+        raise HTTPException(status_code=403, detail="You cannot approve your own task")
     prev = task.status
     next_status = "am_review" if prev == "waiting_approval" else "done"
     task.status = next_status
@@ -250,14 +252,23 @@ def approve_task(task_id: int, db: DbSession, current_user: CurrentUser):
 
 
 @router.post("/{task_id}/reject")
-def reject_task(task_id: int, db: DbSession, current_user: CurrentUser):
+def reject_task(task_id: int, body: dict = Body(default={}), db: DbSession = None, current_user: CurrentUser = None):
     task = _get_task_or_404(db, task_id)
     prev = task.status
     task.status = "revisions_needed"
     task.revision_count = (task.revision_count or 0) + 1
+    notes = (body or {}).get("notes", "") if isinstance(body, dict) else ""
+    if notes:
+        task.revision_notes = notes
     _record_status(db, task, prev, "revisions_needed", current_user.id)
+    if notes:
+        from app.schemas.task import TaskCommentCreate as _TCC
+        task_service.add_comment(db, task.id, _TCC(content=f"[Rejection reason]: {notes}"), current_user)
+    notify_msg = f"Task '{task.title}' has been sent back for revisions."
+    if notes:
+        notify_msg += f" Reason: {notes}"
     if task.assigned_to:
-        _notify(db, task.assigned_to, "Task needs revisions", f"Task '{task.title}' has been sent back for revisions.", task.id)
+        _notify(db, task.assigned_to, "Task needs revisions", notify_msg, task.id)
     db.commit()
     return {"status": task.status}
 
