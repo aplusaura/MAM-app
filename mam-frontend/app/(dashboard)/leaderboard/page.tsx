@@ -6,6 +6,7 @@ import { TopBar } from "@/components/layout/TopBar";
 import { getMediaUrl } from "@/lib/api";
 import { Trophy, Star, CheckSquare, Medal } from "lucide-react";
 import { format } from "date-fns";
+import { useTranslation } from "@/hooks/useTranslation";
 
 interface LeaderboardEntry {
   rank: number;
@@ -22,6 +23,7 @@ const RANK_COLORS = ["bg-yellow-400 text-yellow-900", "bg-gray-300 text-gray-700
 const RANK_ICONS = [Trophy, Medal, Medal];
 
 export default function LeaderboardPage() {
+  const { t } = useTranslation();
   const { data, isLoading } = useQuery<LeaderboardEntry[]>({
     queryKey: ["leaderboard"],
     queryFn: () => get("/employees/leaderboard"),
@@ -33,7 +35,7 @@ export default function LeaderboardPage() {
 
   return (
     <>
-      <TopBar title="Leaderboard" />
+      <TopBar title={t("leaderboard")} />
       <main className="flex-1 p-3 sm:p-6 bg-gray-50 min-h-full">
         <div className="max-w-2xl mx-auto space-y-4">
           <div className="flex items-center justify-between">
@@ -53,7 +55,7 @@ export default function LeaderboardPage() {
           )}
 
           {!isLoading && (!data || data.length === 0) && (
-            <p className="text-sm text-gray-400 text-center py-16">No data for this month yet.</p>
+            <p className="text-sm text-gray-400 text-center py-16">{t("noData")}</p>
           )}
 
           {/* Top 3 podium */}

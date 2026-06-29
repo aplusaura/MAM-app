@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { Plus, Pencil, Trash2, Shield, CheckSquare } from "lucide-react";
 import { useAuthStore } from "@/store/auth";
 import { useRouter } from "next/navigation";
+import { useTranslation } from "@/hooks/useTranslation";
 
 interface Permission { id: number; name: string; slug: string; module: string; description?: string; }
 interface Role { id: number; name: string; slug: string; description?: string; }
@@ -22,6 +23,7 @@ export default function RolesPage() {
   const { user } = useAuthStore();
   const router = useRouter();
   const qc = useQueryClient();
+  const { t } = useTranslation();
 
   const [createOpen, setCreateOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<RoleWithPermissions | null>(null);
@@ -111,7 +113,7 @@ export default function RolesPage() {
 
   return (
     <>
-      <TopBar title="Roles & Permissions" />
+      <TopBar title={t("rolesAndPermissions")} />
       <main className="flex-1 p-3 sm:p-6 bg-gray-50 min-h-full">
         <div className="max-w-3xl mx-auto space-y-4">
           <div className="flex items-center justify-between">
@@ -120,7 +122,7 @@ export default function RolesPage() {
               <h2 className="text-sm font-semibold text-gray-800">Roles</h2>
             </div>
             <Button size="sm" onClick={() => { setName(""); setSlug(""); setDesc(""); setSelectedPerms([]); setCreateOpen(true); }}>
-              <Plus className="h-4 w-4 mr-1" />New Role
+              <Plus className="h-4 w-4 mr-1" />{t("addRole")}
             </Button>
           </div>
 
@@ -145,17 +147,17 @@ export default function RolesPage() {
       {/* Create Role Dialog */}
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
         <DialogContent className="max-w-lg">
-          <DialogHeader><DialogTitle>Create Role</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>{t("addRole")}</DialogTitle></DialogHeader>
           <div className="space-y-3">
             <div className="grid grid-cols-2 gap-3">
-              <div><Label>Name *</Label><Input value={name} onChange={(e) => setName(e.target.value)} className="mt-1" /></div>
+              <div><Label>{t("roleName")} *</Label><Input value={name} onChange={(e) => setName(e.target.value)} className="mt-1" /></div>
               <div><Label>Slug *</Label><Input value={slug} onChange={(e) => setSlug(e.target.value)} className="mt-1" placeholder="e.g. team_leader" /></div>
             </div>
-            <div><Label>Description</Label><Input value={desc} onChange={(e) => setDesc(e.target.value)} className="mt-1" /></div>
-            <div><Label className="mb-2 block">Permissions</Label><PermissionGrid /></div>
+            <div><Label>{t("description")}</Label><Input value={desc} onChange={(e) => setDesc(e.target.value)} className="mt-1" /></div>
+            <div><Label className="mb-2 block">{t("permissions")}</Label><PermissionGrid /></div>
             <div className="flex justify-end gap-2 pt-2">
-              <Button variant="outline" onClick={() => setCreateOpen(false)}>Cancel</Button>
-              <Button onClick={() => createMutation.mutate()} disabled={!name || !slug || createMutation.isPending}>Create</Button>
+              <Button variant="outline" onClick={() => setCreateOpen(false)}>{t("cancel")}</Button>
+              <Button onClick={() => createMutation.mutate()} disabled={!name || !slug || createMutation.isPending}>{t("create")}</Button>
             </div>
           </div>
         </DialogContent>
@@ -166,12 +168,12 @@ export default function RolesPage() {
         <DialogContent className="max-w-lg">
           <DialogHeader><DialogTitle>Edit Role: {editTarget?.name}</DialogTitle></DialogHeader>
           <div className="space-y-3">
-            <div><Label>Name</Label><Input value={name} onChange={(e) => setName(e.target.value)} className="mt-1" /></div>
-            <div><Label>Description</Label><Input value={desc} onChange={(e) => setDesc(e.target.value)} className="mt-1" /></div>
-            <div><Label className="mb-2 block">Permissions</Label><PermissionGrid /></div>
+            <div><Label>{t("roleName")}</Label><Input value={name} onChange={(e) => setName(e.target.value)} className="mt-1" /></div>
+            <div><Label>{t("description")}</Label><Input value={desc} onChange={(e) => setDesc(e.target.value)} className="mt-1" /></div>
+            <div><Label className="mb-2 block">{t("permissions")}</Label><PermissionGrid /></div>
             <div className="flex justify-end gap-2 pt-2">
-              <Button variant="outline" onClick={() => setEditTarget(null)}>Cancel</Button>
-              <Button onClick={() => updateMutation.mutate()} disabled={updateMutation.isPending}>Save</Button>
+              <Button variant="outline" onClick={() => setEditTarget(null)}>{t("cancel")}</Button>
+              <Button onClick={() => updateMutation.mutate()} disabled={updateMutation.isPending}>{t("save")}</Button>
             </div>
           </div>
         </DialogContent>
@@ -180,7 +182,7 @@ export default function RolesPage() {
       <ConfirmDialog
         open={!!confirmTarget}
         onOpenChange={(v) => !v && setConfirmTarget(null)}
-        title="Delete Role"
+        title={`${t("delete")} ${t("role")}`}
         description={`Delete role "${confirmTarget?.name}"? This cannot be undone.`}
         onConfirm={() => { if (confirmTarget) { deleteMutation.mutate(confirmTarget.id); setConfirmTarget(null); } }}
         loading={deleteMutation.isPending}

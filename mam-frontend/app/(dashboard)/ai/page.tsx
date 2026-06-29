@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { NativeSelect } from "@/components/ui/native-select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useState } from "react";
+import { useTranslation } from "@/hooks/useTranslation";
 import { Sparkles, AlertTriangle, Users, Search, CheckSquare, TrendingUp, RefreshCw, FileText, Printer, Calculator, MessageCircle, Send, DollarSign, CalendarDays, X, Zap, Brain, TrendingDown } from "lucide-react";
 import { toast } from "sonner";
 import { useAuthStore } from "@/store/auth";
@@ -195,6 +196,7 @@ const AI_TOOLS = [
 ] as const;
 
 export default function AIPage() {
+  const { t } = useTranslation();
   const [selectedTool, setSelectedTool] = useState<AITool | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [submittedQuery, setSubmittedQuery] = useState("");
@@ -345,13 +347,13 @@ export default function AIPage() {
 
   return (
     <>
-      <TopBar title="AI Features" />
+      <TopBar title={t("aiFeatures")} />
       <main className="flex-1 p-3 sm:p-6 space-y-4 sm:space-y-6">
 
         {/* Tool Selector Grid - PROMINENT AT TOP */}
         <div className="mb-2">
           <div className="flex items-baseline gap-2 mb-4">
-            <h2 className="text-2xl font-bold text-gray-900">AI Tools</h2>
+            <h2 className="text-2xl font-bold text-gray-900">{t("aiFeatures")}</h2>
             <p className="text-sm text-gray-500">Select a tool to get started</p>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
@@ -387,7 +389,7 @@ export default function AIPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
               <Search className="h-4 w-4 text-blue-500" />
-              Smart Search
+              {t("smartSuggestions")}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -403,11 +405,11 @@ export default function AIPage() {
                 <Search className="h-4 w-4" />
               </Button>
             </div>
-            {loadingSearch && <p className="text-sm text-muted-foreground mt-3">Searching...</p>}
+            {loadingSearch && <p className="text-sm text-muted-foreground mt-3">{t("loading")}</p>}
             {searchResults && (
               <div className="mt-3 space-y-2">
                 {searchResults.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">No results found.</p>
+                  <p className="text-sm text-muted-foreground">{t("noResults")}</p>
                 ) : searchResults.map((r, i) => (
                   <div key={i} className="flex items-center gap-3 p-3 rounded-lg border bg-white">
                     <Badge variant="outline" className="shrink-0 text-xs capitalize">{r.type}</Badge>
@@ -436,7 +438,7 @@ export default function AIPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
               <Sparkles className="h-4 w-4 text-purple-500" />
-              Weekly Report
+              {t("weeklyReport")}
               {weekly && (
                 <span className="text-xs text-muted-foreground font-normal ml-2">
                   {weekly.period.from} → {weekly.period.to}
@@ -446,7 +448,7 @@ export default function AIPage() {
           </CardHeader>
           <CardContent>
             {loadingWeekly ? (
-              <p className="text-sm text-muted-foreground">Loading...</p>
+              <p className="text-sm text-muted-foreground">{t("loading")}</p>
             ) : weekly ? (
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
                 <StatCard title="Tasks Done" value={weekly.tasks.completed_this_week} icon={CheckSquare} color="green" />

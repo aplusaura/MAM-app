@@ -101,12 +101,16 @@ def get_messages(user_id: int, db: DbSession, current_user: CurrentUser):
 
 @router.post("/{user_id}", response_model=DirectMessageRead)
 def send_message(user_id: int, payload: DirectMessageCreate, db: DbSession, current_user: CurrentUser):
+    from app.models.user import User
+    if user_id == current_user.id:
+        raise HTTPException(status_code=400, detail="Cannot send a message to yourself")
+    recipient = db.query(User).filter(User.id == user_id, User.deleted_at.is_(None)).first()
+    if not recipient:
+        raise HTTPException(status_code=404, detail="Recipient not found")
     msg = DirectMessage(
         from_user_id=current_user.id,
         to_user_id=user_id,
         content=payload.content,
-        created_at=datetime.now(timezone.utc),
-        updated_at=datetime.now(timezone.utc),
     )
     db.add(msg)
     db.commit()

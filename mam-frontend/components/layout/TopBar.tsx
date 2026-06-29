@@ -12,6 +12,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { get, post, getErrorMessage } from "@/lib/api";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { useTranslation } from "@/hooks/useTranslation";
 
 interface TopBarProps {
   title: string;
@@ -49,6 +50,7 @@ function fmtMs(ms: number): string {
 }
 
 export function TopBar({ title }: TopBarProps) {
+  const { t } = useTranslation();
   const { user } = useAuthStore();
   const { openMobile } = useSidebarStore();
   const { theme, setTheme } = useTheme();
@@ -264,7 +266,7 @@ export function TopBar({ title }: TopBarProps) {
             value={searchQuery}
             onChange={(e) => handleSearchChange(e.target.value)}
             onFocus={() => searchResults.length > 0 && setSearchOpen(true)}
-            placeholder="Search projects, tasks, clients..."
+            placeholder={t("searchPlaceholder")}
             className="w-full pl-8 pr-3 py-1.5 text-sm rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/40 dark:focus:ring-blue-500/30 transition-colors"
           />
           {searchLoading && (
@@ -274,7 +276,7 @@ export function TopBar({ title }: TopBarProps) {
         {searchOpen && (
           <div className="absolute top-full left-0 right-0 mt-1.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg overflow-hidden z-50">
             {searchResults.length === 0 ? (
-              <p className="px-4 py-3 text-sm text-gray-400 dark:text-gray-500">No results found</p>
+              <p className="px-4 py-3 text-sm text-gray-400 dark:text-gray-500">{t("noResults")}</p>
             ) : (
               <ul className="max-h-72 overflow-y-auto divide-y divide-gray-100 dark:divide-gray-700/50">
                 {searchResults.map((result) => (
@@ -317,7 +319,7 @@ export function TopBar({ title }: TopBarProps) {
               className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
             >
               <Play className="h-3 w-3 shrink-0" />
-              <span className="hidden md:inline">Start My Day</span>
+              <span className="hidden md:inline">{t("startYourDay")}</span>
             </button>
           )}
           {(dayState === "running" || dayState === "paused") && (
@@ -333,7 +335,7 @@ export function TopBar({ title }: TopBarProps) {
                 <button onClick={handlePause} title="Pause"
                   className="flex items-center gap-1 px-2 py-1.5 rounded-lg text-xs font-medium bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 hover:bg-yellow-200 dark:hover:bg-yellow-900/50 transition-colors">
                   <Pause className="h-3 w-3" />
-                  <span className="hidden md:inline">Pause</span>
+                  <span className="hidden md:inline">{t("pauseDay")}</span>
                 </button>
               ) : (
                 <button onClick={handleResume} title="Resume"
@@ -346,7 +348,7 @@ export function TopBar({ title }: TopBarProps) {
               <button onClick={handleEnd} title="End My Day"
                 className="flex items-center gap-1 px-2 py-1.5 rounded-lg text-xs font-medium bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors">
                 <Square className="h-3 w-3" />
-                <span className="hidden md:inline">End</span>
+                <span className="hidden md:inline">{t("endDay")}</span>
               </button>
             </>
           )}

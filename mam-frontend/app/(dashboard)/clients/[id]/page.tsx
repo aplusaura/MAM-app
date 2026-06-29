@@ -16,6 +16,7 @@ import { ArrowLeft, Building2, Mail, Phone, MapPin, Calendar, DollarSign, FileTe
 import type { Client, Project, Invoice, Task } from "@/types";
 import { format } from "date-fns";
 import { toast } from "sonner";
+import { useTranslation } from "@/hooks/useTranslation";
 
 interface ClientDetail extends Client {
   contacts?: { id: number; name: string; role?: string; phone?: string; email?: string; is_primary: boolean }[];
@@ -47,6 +48,7 @@ export default function ClientProfilePage() {
   const qc = useQueryClient();
   const logoInputRef = useRef<HTMLInputElement>(null);
 
+  const { t } = useTranslation();
   const [editMode, setEditMode] = useState(false);
   const [editForm, setEditForm] = useState<EditForm>({} as EditForm);
   const [notesEditMode, setNotesEditMode] = useState(false);
@@ -146,14 +148,14 @@ export default function ClientProfilePage() {
 
   if (isLoading) return (
     <>
-      <TopBar title="Client Profile" />
-      <main className="flex-1 p-3 sm:p-6"><p className="text-muted-foreground">Loading...</p></main>
+      <TopBar title={t("clientDetails")} />
+      <main className="flex-1 p-3 sm:p-6"><p className="text-muted-foreground">{t("loading")}...</p></main>
     </>
   );
 
   if (!client) return (
     <>
-      <TopBar title="Client Profile" />
+      <TopBar title={t("clientDetails")} />
       <main className="flex-1 p-3 sm:p-6"><p className="text-muted-foreground">Client not found.</p></main>
     </>
   );
@@ -165,17 +167,17 @@ export default function ClientProfilePage() {
         {/* Back + Edit buttons */}
         <div className="flex items-center justify-between">
           <Button variant="ghost" size="sm" onClick={() => router.back()}>
-            <ArrowLeft className="h-4 w-4 mr-2" /> Back
+            <ArrowLeft className="h-4 w-4 mr-2" /> {t("back")}
           </Button>
           {canEdit && !editMode && (
             <Button variant="outline" size="sm" onClick={openEdit}>
-              <Pencil className="h-4 w-4 mr-2" /> Edit Client
+              <Pencil className="h-4 w-4 mr-2" /> {t("editClient")}
             </Button>
           )}
           {editMode && (
             <div className="flex gap-2">
               <Button variant="outline" size="sm" onClick={() => { if (client) setEditForm(buildEditForm(client)); setEditMode(false); }}>
-                <X className="h-4 w-4 mr-1" /> Cancel
+                <X className="h-4 w-4 mr-1" /> {t("cancel")}
               </Button>
               <Button
                 size="sm"
@@ -186,7 +188,7 @@ export default function ClientProfilePage() {
                 })}
                 disabled={updateMutation.isPending}
               >
-                <Check className="h-4 w-4 mr-1" /> {updateMutation.isPending ? "Saving..." : "Save Changes"}
+                <Check className="h-4 w-4 mr-1" /> {updateMutation.isPending ? "Saving..." : t("save")}
               </Button>
             </div>
           )}
@@ -266,7 +268,7 @@ export default function ClientProfilePage() {
           </div>
           {!editMode && client.monthly_value && canViewFinance && (
             <div className="text-right">
-              <p className="text-xs font-medium text-gray-400 uppercase tracking-wide">Monthly Value</p>
+              <p className="text-xs font-medium text-gray-400 uppercase tracking-wide">{t("monthlyValue")}</p>
               <p className="text-2xl font-bold text-emerald-600">${Number(client.monthly_value).toLocaleString()}</p>
             </div>
           )}
@@ -279,19 +281,19 @@ export default function ClientProfilePage() {
             <CardContent>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                 {([
-                  ["contact_person", "Contact Person", "text"],
-                  ["email", "Email", "email"],
-                  ["phone", "Phone", "text"],
-                  ["industry", "Industry", "text"],
-                  ["service_type", "Service Type", "text"],
-                  ["package_type", "Package Type", "text"],
-                  ["contract_type", "Contract Type", "text"],
+                  ["contact_person", t("contactPerson"), "text"],
+                  ["email", t("email"), "email"],
+                  ["phone", t("phone"), "text"],
+                  ["industry", t("industry"), "text"],
+                  ["service_type", t("serviceType"), "text"],
+                  ["package_type", t("packageType"), "text"],
+                  ["contract_type", t("contractType"), "text"],
                   ...(canViewFinance ? [
-                    ["monthly_value", "Monthly Value ($)", "number"],
-                    ["contract_value", "Contract Value ($)", "number"],
+                    ["monthly_value", `${t("monthlyValue")} ($)`, "number"],
+                    ["contract_value", `${t("contractValue")} ($)`, "number"],
                   ] as [keyof EditForm, string, string][] : []),
-                  ["start_date", "Start Date", "date"],
-                  ["renewal_date", "Renewal Date", "date"],
+                  ["start_date", t("date"), "date"],
+                  ["renewal_date", t("renewalDate"), "date"],
                 ] as [keyof EditForm, string, string][]).map(([key, label, type]) => (
                   <div key={key}>
                     <Label className="text-xs">{label}</Label>
@@ -304,7 +306,7 @@ export default function ClientProfilePage() {
                   </div>
                 ))}
                 <div className="col-span-2 md:col-span-3">
-                  <Label className="text-xs">Address</Label>
+                  <Label className="text-xs">{t("address")}</Label>
                   <Input
                     value={editForm.address}
                     onChange={(e) => setEditForm((f) => ({ ...f, address: e.target.value }))}
@@ -477,19 +479,19 @@ export default function ClientProfilePage() {
             <CardContent className="grid grid-cols-2 sm:grid-cols-3 gap-3">
               {client.address && (
                 <div>
-                  <p className="text-xs text-muted-foreground flex items-center gap-1"><MapPin className="h-3 w-3" />Address</p>
+                  <p className="text-xs text-muted-foreground flex items-center gap-1"><MapPin className="h-3 w-3" />{t("address")}</p>
                   <p className="text-sm mt-0.5">{client.address}</p>
                 </div>
               )}
               {client.package_type && (
                 <div>
-                  <p className="text-xs text-muted-foreground">Package Type</p>
+                  <p className="text-xs text-muted-foreground">{t("packageType")}</p>
                   <Badge variant="outline" className="mt-0.5 text-xs">{client.package_type}</Badge>
                 </div>
               )}
               {client.contract_type && (
                 <div>
-                  <p className="text-xs text-muted-foreground">Contract Type</p>
+                  <p className="text-xs text-muted-foreground">{t("contractType")}</p>
                   <Badge variant="outline" className="mt-0.5 text-xs">{client.contract_type}</Badge>
                 </div>
               )}
@@ -501,7 +503,7 @@ export default function ClientProfilePage() {
               )}
               {canViewFinance && client.contract_value && (
                 <div>
-                  <p className="text-xs text-muted-foreground flex items-center gap-1"><DollarSign className="h-3 w-3" />Contract Value</p>
+                  <p className="text-xs text-muted-foreground flex items-center gap-1"><DollarSign className="h-3 w-3" />{t("contractValue")}</p>
                   <p className="text-sm font-medium mt-0.5">${Number(client.contract_value).toLocaleString()}</p>
                 </div>
               )}
@@ -512,7 +514,7 @@ export default function ClientProfilePage() {
         {/* Notes */}
         <Card className="rounded-xl border-gray-100 shadow-sm">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-xs font-semibold text-gray-500 uppercase tracking-wide flex items-center gap-2"><FileText className="h-4 w-4" />Notes</CardTitle>
+            <CardTitle className="text-xs font-semibold text-gray-500 uppercase tracking-wide flex items-center gap-2"><FileText className="h-4 w-4" />{t("clientNotes")}</CardTitle>
             {canEdit && !notesEditMode && !editMode && (
               <Button
                 variant="ghost"
@@ -534,9 +536,9 @@ export default function ClientProfilePage() {
                   placeholder="Add notes about this client..."
                 />
                 <div className="flex gap-2 justify-end">
-                  <Button variant="outline" size="sm" onClick={() => setNotesEditMode(false)}>Cancel</Button>
+                  <Button variant="outline" size="sm" onClick={() => setNotesEditMode(false)}>{t("cancel")}</Button>
                   <Button size="sm" onClick={() => notesMutation.mutate(notesValue)} disabled={notesMutation.isPending}>
-                    {notesMutation.isPending ? "Saving..." : "Save Notes"}
+                    {notesMutation.isPending ? "Saving..." : t("save")}
                   </Button>
                 </div>
               </div>

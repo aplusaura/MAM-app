@@ -5,6 +5,13 @@ import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "next-themes";
 import { useState } from "react";
 import { playSound } from "@/lib/sounds";
+import { useLanguageStore } from "@/store/language";
+
+function ToasterWithDir() {
+  const { locale } = useLanguageStore();
+  const pos = locale === "ar" ? "bottom-left" : "bottom-right";
+  return <Toaster richColors position={pos} />;
+}
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
@@ -30,7 +37,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
     <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false} disableTransitionOnChange={false}>
       <QueryClientProvider client={queryClient}>
         {children}
-        <Toaster richColors position="bottom-right" />
+        <ToasterWithDir />
       </QueryClientProvider>
     </ThemeProvider>
   );

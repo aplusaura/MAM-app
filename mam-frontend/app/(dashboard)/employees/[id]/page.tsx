@@ -20,6 +20,7 @@ import { useState, useRef } from "react";
 import type { Task, Department, Role, LeaveRequest, EmployeeEvaluation } from "@/types";
 import { PageTransition } from "@/components/shared/PageTransition";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
+import { useTranslation } from "@/hooks/useTranslation";
 
 interface DirectReport {
   id: number;
@@ -107,6 +108,7 @@ export default function EmployeeProfilePage() {
   const isSuperAdmin = user?.is_superuser ?? false;
   const canEdit = isSuperAdmin || user?.employee_id === empId;
 
+  const { t } = useTranslation();
   const [editMode, setEditMode] = useState(false);
   const [editSection, setEditSection] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"info" | "employment" | "skills" | "tasks" | "notes" | "report" | "permissions" | "leaves" | "kpis" | "reviews">("info");
@@ -474,14 +476,14 @@ export default function EmployeeProfilePage() {
 
   if (isLoading) return (
     <>
-      <TopBar title="Employee Profile" />
-      <main className="flex-1 p-3 sm:p-6"><p className="text-muted-foreground">Loading...</p></main>
+      <TopBar title={t("employeeDetails")} />
+      <main className="flex-1 p-3 sm:p-6"><p className="text-muted-foreground">{t("loading")}...</p></main>
     </>
   );
 
   if (!employee) return (
     <>
-      <TopBar title="Employee Profile" />
+      <TopBar title={t("employeeDetails")} />
       <main className="flex-1 p-3 sm:p-6"><p className="text-muted-foreground">Employee not found.</p></main>
     </>
   );
@@ -526,7 +528,7 @@ export default function EmployeeProfilePage() {
       <main className="flex-1 p-3 sm:p-6 bg-gray-50 min-h-full">
         <PageTransition>
         <Button variant="ghost" size="sm" onClick={() => router.back()} className="mb-4">
-          <ArrowLeft className="h-4 w-4 mr-2" /> Back
+          <ArrowLeft className="h-4 w-4 mr-2" /> {t("back")}
         </Button>
 
         <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-6 items-start">
@@ -645,13 +647,13 @@ export default function EmployeeProfilePage() {
                   <SectionHeader title="Personal Info" section="info" />
                   {editSection === "info" ? (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div><label className="text-xs text-muted-foreground mb-1 block">Full Name</label>
+                      <div><label className="text-xs text-muted-foreground mb-1 block">{t("fullName")}</label>
                         <Input value={editForm.full_name} onChange={(e) => setEditForm(f => ({ ...f, full_name: e.target.value }))} /></div>
-                      <div><label className="text-xs text-muted-foreground mb-1 block">Job Title</label>
+                      <div><label className="text-xs text-muted-foreground mb-1 block">{t("jobTitle")}</label>
                         <Input value={editForm.job_title} onChange={(e) => setEditForm(f => ({ ...f, job_title: e.target.value }))} /></div>
-                      <div><label className="text-xs text-muted-foreground mb-1 block">Phone</label>
+                      <div><label className="text-xs text-muted-foreground mb-1 block">{t("phone")}</label>
                         <Input value={editForm.phone} onChange={(e) => setEditForm(f => ({ ...f, phone: e.target.value }))} /></div>
-                      <div><label className="text-xs text-muted-foreground mb-1 block">Status</label>
+                      <div><label className="text-xs text-muted-foreground mb-1 block">{t("status")}</label>
                         <Select value={editForm.status} onValueChange={(v) => setEditForm(f => ({ ...f, status: v ?? "" }))}>
                           <SelectTrigger><SelectValue placeholder="Select status" /></SelectTrigger>
                           <SelectContent>
@@ -662,7 +664,7 @@ export default function EmployeeProfilePage() {
                           </SelectContent>
                         </Select>
                       </div>
-                      <div><label className="text-xs text-muted-foreground mb-1 block">Availability</label>
+                      <div><label className="text-xs text-muted-foreground mb-1 block">{t("availabilityStatus")}</label>
                         <Select value={editForm.availability_status} onValueChange={(v) => setEditForm(f => ({ ...f, availability_status: v ?? "" }))}>
                           <SelectTrigger><SelectValue placeholder="Select availability" /></SelectTrigger>
                           <SelectContent>
@@ -677,13 +679,13 @@ export default function EmployeeProfilePage() {
                   ) : (
                     <div className="space-y-3">
                       <div className="grid grid-cols-2 gap-x-8 gap-y-3 text-sm">
-                        <div><p className="text-xs text-gray-400 mb-0.5">Full Name</p><p className="font-medium text-gray-800">{employee.full_name}</p></div>
-                        <div><p className="text-xs text-gray-400 mb-0.5">Job Title</p><p className="font-medium text-gray-800">{employee.job_title ?? "—"}</p></div>
-                        <div><p className="text-xs text-gray-400 mb-0.5">Phone</p><p className="font-medium text-gray-800">{employee.phone ?? "—"}</p></div>
-                        <div><p className="text-xs text-gray-400 mb-0.5">Status</p><StatusBadge value={employee.status} /></div>
-                        <div><p className="text-xs text-gray-400 mb-0.5">Availability</p><StatusBadge value={employee.availability_status} /></div>
-                        {employee.department && <div><p className="text-xs text-gray-400 mb-0.5">Department</p><p className="font-medium text-gray-800">{employee.department.name}</p></div>}
-                        {employee.role && <div><p className="text-xs text-gray-400 mb-0.5">Role</p><p className="font-medium text-gray-800">{employee.role.name}</p></div>}
+                        <div><p className="text-xs text-gray-400 mb-0.5">{t("fullName")}</p><p className="font-medium text-gray-800">{employee.full_name}</p></div>
+                        <div><p className="text-xs text-gray-400 mb-0.5">{t("jobTitle")}</p><p className="font-medium text-gray-800">{employee.job_title ?? "—"}</p></div>
+                        <div><p className="text-xs text-gray-400 mb-0.5">{t("phone")}</p><p className="font-medium text-gray-800">{employee.phone ?? "—"}</p></div>
+                        <div><p className="text-xs text-gray-400 mb-0.5">{t("status")}</p><StatusBadge value={employee.status} /></div>
+                        <div><p className="text-xs text-gray-400 mb-0.5">{t("availabilityStatus")}</p><StatusBadge value={employee.availability_status} /></div>
+                        {employee.department && <div><p className="text-xs text-gray-400 mb-0.5">{t("department")}</p><p className="font-medium text-gray-800">{employee.department.name}</p></div>}
+                        {employee.role && <div><p className="text-xs text-gray-400 mb-0.5">{t("role")}</p><p className="font-medium text-gray-800">{employee.role.name}</p></div>}
                       </div>
                     </div>
                   )}
@@ -698,7 +700,7 @@ export default function EmployeeProfilePage() {
                   <SectionHeader title="Employment" section="employment" />
                   {editSection === "employment" ? (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div><label className="text-xs text-muted-foreground mb-1 block">Employment Type</label>
+                      <div><label className="text-xs text-muted-foreground mb-1 block">{t("employmentType")}</label>
                         <Select value={editForm.employment_type} onValueChange={(v) => setEditForm(f => ({ ...f, employment_type: v ?? "" }))}>
                           <SelectTrigger><SelectValue placeholder="Select type" /></SelectTrigger>
                           <SelectContent>
@@ -710,16 +712,16 @@ export default function EmployeeProfilePage() {
                           </SelectContent>
                         </Select>
                       </div>
-                      <div><label className="text-xs text-muted-foreground mb-1 block">Salary (monthly)</label>
+                      <div><label className="text-xs text-muted-foreground mb-1 block">{t("salary")}</label>
                         <Input type="number" value={editForm.salary} onChange={(e) => setEditForm(f => ({ ...f, salary: e.target.value }))} /></div>
-                      <div><label className="text-xs text-muted-foreground mb-1 block">Join Date</label>
+                      <div><label className="text-xs text-muted-foreground mb-1 block">{t("joinDate")}</label>
                         <Input type="date" value={editForm.join_date} onChange={(e) => setEditForm(f => ({ ...f, join_date: e.target.value }))} /></div>
                     </div>
                   ) : (
                     <div className="grid grid-cols-2 gap-x-8 gap-y-3 text-sm">
-                      <div><p className="text-xs text-gray-400 mb-0.5">Employment Type</p><p className="font-medium text-gray-800">{employee.employment_type?.replace(/_/g, " ") ?? "—"}</p></div>
-                      <div><p className="text-xs text-gray-400 mb-0.5">Monthly Salary</p><p className="font-medium text-gray-800">{employee.salary ? `$${Number(employee.salary).toLocaleString()}` : "—"}</p></div>
-                      <div><p className="text-xs text-gray-400 mb-0.5">Join Date</p><p className="font-medium text-gray-800">{employee.join_date ? format(new Date(employee.join_date), "MMM d, yyyy") : "—"}</p></div>
+                      <div><p className="text-xs text-gray-400 mb-0.5">{t("employmentType")}</p><p className="font-medium text-gray-800">{employee.employment_type?.replace(/_/g, " ") ?? "—"}</p></div>
+                      <div><p className="text-xs text-gray-400 mb-0.5">{t("salary")}</p><p className="font-medium text-gray-800">{employee.salary ? `$${Number(employee.salary).toLocaleString()}` : "—"}</p></div>
+                      <div><p className="text-xs text-gray-400 mb-0.5">{t("joinDate")}</p><p className="font-medium text-gray-800">{employee.join_date ? format(new Date(employee.join_date), "MMM d, yyyy") : "—"}</p></div>
                       <div><p className="text-xs text-gray-400 mb-0.5">Working Days</p><p className="font-medium text-gray-800">{workdays?.total_days ?? 0}</p></div>
                     </div>
                   )}
@@ -841,7 +843,7 @@ export default function EmployeeProfilePage() {
                             >
                               {giveBonusMutation.isPending ? "Saving…" : "Confirm Bonus"}
                             </Button>
-                            <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => setShowBonusForm(false)}>Cancel</Button>
+                            <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => setShowBonusForm(false)}>{t("cancel")}</Button>
                           </div>
                         </div>
                       )}
@@ -1071,7 +1073,7 @@ export default function EmployeeProfilePage() {
               <Card className="rounded-xl border-gray-100 shadow-sm">
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-widest">Leave Requests</h3>
+                    <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-widest">{t("leaveRequests")}</h3>
                     <Button size="sm" variant="outline" onClick={() => setShowLeaveForm(v => !v)}>
                       + Request Leave
                     </Button>
@@ -1116,7 +1118,7 @@ export default function EmployeeProfilePage() {
                           }}>
                           Submit
                         </Button>
-                        <Button size="sm" variant="ghost" onClick={() => setShowLeaveForm(false)}>Cancel</Button>
+                        <Button size="sm" variant="ghost" onClick={() => setShowLeaveForm(false)}>{t("cancel")}</Button>
                       </div>
                     </div>
                   )}
@@ -1163,8 +1165,8 @@ export default function EmployeeProfilePage() {
                                     const end = new Date(editLeave.end_date);
                                     const days = Math.max(1, Math.round((end.getTime() - start.getTime()) / 86400000) + 1);
                                     updateLeaveMutation.mutate({ leaveId: lr.id, data: { ...editLeave, days_count: days, employee_id: empId } });
-                                  }}>Save</Button>
-                                <Button size="sm" variant="ghost" className="h-6 text-xs" onClick={() => setEditLeave(null)}>Cancel</Button>
+                                  }}>{t("save")}</Button>
+                                <Button size="sm" variant="ghost" className="h-6 text-xs" onClick={() => setEditLeave(null)}>{t("cancel")}</Button>
                               </div>
                             </div>
                           ) : (
@@ -1282,7 +1284,7 @@ export default function EmployeeProfilePage() {
                   <Card className="rounded-xl border-gray-100 dark:border-gray-700 shadow-sm">
                     <CardContent className="p-6">
                       <div className="flex items-center justify-between mb-3">
-                        <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-widest">Work Log</h3>
+                        <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-widest">{t("workSessions")}</h3>
                         {workSessions && workSessions.length > 0 && (
                           <span className="text-xs text-gray-400">
                             Total: <span className="font-semibold text-gray-700 dark:text-gray-200">
@@ -1353,7 +1355,7 @@ export default function EmployeeProfilePage() {
                 <Card className="rounded-xl border-gray-100 shadow-sm">
                   <CardContent className="p-6">
                     <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-widest">Evaluations</h3>
+                      <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-widest">{t("evaluations")}</h3>
                       {isSuperAdmin && (
                         <Button size="sm" variant="outline" onClick={() => setShowEvalForm(v => !v)}>
                           + Add Evaluation
@@ -1400,9 +1402,9 @@ export default function EmployeeProfilePage() {
                               period_month: new Date().getMonth() + 1,
                               period_year: new Date().getFullYear(),
                             })}>
-                            Save
+                            {t("save")}
                           </Button>
-                          <Button size="sm" variant="ghost" onClick={() => setShowEvalForm(false)}>Cancel</Button>
+                          <Button size="sm" variant="ghost" onClick={() => setShowEvalForm(false)}>{t("cancel")}</Button>
                         </div>
                       </div>
                     )}
@@ -1540,7 +1542,7 @@ export default function EmployeeProfilePage() {
                 {/* Add Review form + list */}
                 <div className="rounded-xl border border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm">
                   <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-gray-700">
-                    <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-widest">Performance Reviews</h3>
+                    <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-widest">{t("performance")}</h3>
                     {isSuperAdmin && (
                       <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => setShowReviewForm(v => !v)}>
                         + Add Review
@@ -1645,7 +1647,7 @@ export default function EmployeeProfilePage() {
                         >
                           {addReviewMutation.isPending ? "Saving..." : "Submit Review"}
                         </Button>
-                        <Button size="sm" variant="ghost" onClick={() => setShowReviewForm(false)}>Cancel</Button>
+                        <Button size="sm" variant="ghost" onClick={() => setShowReviewForm(false)}>{t("cancel")}</Button>
                       </div>
                     </div>
                   )}

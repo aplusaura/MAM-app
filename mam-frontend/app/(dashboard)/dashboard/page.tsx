@@ -22,10 +22,12 @@ import { useAuthStore } from "@/store/auth";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import { CalendarView } from "@/components/shared/CalendarView";
 import { PageTransition } from "@/components/shared/PageTransition";
+import { useTranslation } from "@/hooks/useTranslation";
 
 type QAModal = "client" | "lead" | "task" | "project" | null;
 
 export default function DashboardPage() {
+  const { t } = useTranslation();
   const router = useRouter();
   const { user, hasPermission } = useAuthStore();
   const qc = useQueryClient();
@@ -218,28 +220,28 @@ export default function DashboardPage() {
             <div className="space-y-8">
             {/* Quick Actions */}
             <div className="flex items-center gap-3 flex-wrap">
-              <span className="flex items-center gap-1.5 text-xs font-semibold text-gray-400 uppercase tracking-wide"><Zap className="h-3.5 w-3.5" />Quick Actions</span>
+              <span className="flex items-center gap-1.5 text-xs font-semibold text-gray-400 uppercase tracking-wide"><Zap className="h-3.5 w-3.5" />{t("quickActions")}</span>
               <Button size="sm" variant="outline" className="h-8 text-xs" onClick={() => { setQaModal("client"); setQaName(""); setQaExtra(""); }}>
-                <Plus className="h-3.5 w-3.5 mr-1" />Add Client
+                <Plus className="h-3.5 w-3.5 mr-1" />{t("addClient")}
               </Button>
               <Button size="sm" variant="outline" className="h-8 text-xs" onClick={() => { setQaModal("lead"); setQaName(""); setQaExtra(""); }}>
-                <Plus className="h-3.5 w-3.5 mr-1" />Add Lead
+                <Plus className="h-3.5 w-3.5 mr-1" />{t("addLead")}
               </Button>
               <Button size="sm" variant="outline" className="h-8 text-xs" onClick={() => { setQaModal("task"); setQaName(""); setQaExtra("medium"); }}>
-                <Plus className="h-3.5 w-3.5 mr-1" />New Task
+                <Plus className="h-3.5 w-3.5 mr-1" />{t("newTask")}
               </Button>
               <Button size="sm" variant="outline" className="h-8 text-xs" onClick={() => { setQaModal("project"); setQaName(""); setQaExtra("medium"); }}>
-                <Plus className="h-3.5 w-3.5 mr-1" />New Project
+                <Plus className="h-3.5 w-3.5 mr-1" />{t("newProject")}
               </Button>
             </div>
             {/* Stats */}
             <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
-            <StatCard index={0} title="Active Projects" value={projectStats?.by_status?.in_progress ?? "—"} icon={FolderKanban} color="blue" onClick={() => router.push("/projects")} />
-            <StatCard index={1} title="Tasks Done This Week" value={weeklyReport?.tasks.completed_this_week ?? "—"} icon={CheckSquare} color="green" onClick={() => router.push("/tasks?status=done")} />
-            <StatCard index={2} title="Overdue Tasks" value={taskStats?.overdue ?? "—"} icon={AlertTriangle} color="red" onClick={() => router.push("/tasks?status=overdue")} />
+            <StatCard index={0} title={t("activeProjects")} value={projectStats?.by_status?.in_progress ?? "—"} icon={FolderKanban} color="blue" onClick={() => router.push("/projects")} />
+            <StatCard index={1} title={t("tasksDoneThisWeek")} value={weeklyReport?.tasks.completed_this_week ?? "—"} icon={CheckSquare} color="green" onClick={() => router.push("/tasks?status=done")} />
+            <StatCard index={2} title={t("overdueTasks")} value={taskStats?.overdue ?? "—"} icon={AlertTriangle} color="red" onClick={() => router.push("/tasks?status=overdue")} />
             <StatCard
               index={3}
-              title="Revenue This Week"
+              title={t("revenueThisWeek")}
               value={(weeklyReport?.finance.payments_received ?? weeklyReport?.finance.revenue_this_week) != null
                 ? `$${(weeklyReport!.finance.payments_received ?? weeklyReport!.finance.revenue_this_week)!.toLocaleString()}`
                 : "—"}
@@ -247,7 +249,7 @@ export default function DashboardPage() {
               color="green"
               onClick={() => router.push("/finance")}
             />
-            <StatCard index={4} title="New Clients This Month" value={projectStats?.active_clients_this_month ?? "—"} icon={UserCheck} color="blue" onClick={() => router.push("/clients")} />
+            <StatCard index={4} title={t("newClientsThisMonth")} value={projectStats?.active_clients_this_month ?? "—"} icon={UserCheck} color="blue" onClick={() => router.push("/clients")} />
           </div>
 
           {/* Charts Row */}
@@ -257,7 +259,7 @@ export default function DashboardPage() {
                 <CardHeader className="pb-2">
                   <CardTitle className="flex items-center gap-2 text-xs font-semibold text-gray-500 uppercase tracking-wide">
                     <CheckSquare className="h-4 w-4 text-blue-500" />
-                    Weekly Task Activity
+                    {t("weeklyTaskActivity")}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="px-4 pb-4">
@@ -278,7 +280,7 @@ export default function DashboardPage() {
               <CardHeader className="pb-2">
                 <CardTitle className="flex items-center gap-2 text-xs font-semibold text-gray-500 uppercase tracking-wide">
                   <Clock className="h-4 w-4 text-orange-500" />
-                  Task Due Dates
+                  {t("taskDueDates")}
                 </CardTitle>
               </CardHeader>
               <CardContent className="px-3 pb-3">
@@ -297,12 +299,12 @@ export default function DashboardPage() {
                 <CardHeader className="pb-2">
                   <CardTitle className="flex items-center gap-2 text-xs font-semibold text-gray-500 uppercase tracking-wide">
                     <FolderKanban className="h-4 w-4 text-blue-500" />
-                    Top Active Projects
+                    {t("topActiveProjects")}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="px-6 pb-4">
                   {topProjects.length === 0 ? (
-                    <p className="text-sm text-gray-400 py-4">No active projects.</p>
+                    <p className="text-sm text-gray-400 py-4">{t("noActiveProjects")}</p>
                   ) : topProjects.map((p) => (
                     <div key={p.id}
                       onClick={() => router.push(`/projects/${p.id}`)}
@@ -311,7 +313,7 @@ export default function DashboardPage() {
                       <div className="flex-1 min-w-0">
                         <p className="font-medium text-sm text-gray-900 truncate">{p.name}</p>
                         <p className="text-xs text-gray-400 mt-0.5">
-                          {p.due_date ? `Due ${format(new Date(p.due_date), "MMM d")}` : "No due date"}
+                          {p.due_date ? `${t("due")} ${format(new Date(p.due_date), "MMM d")}` : t("noDueDate")}
                         </p>
                       </div>
                       <div className="flex items-center gap-3 ml-4 shrink-0">
@@ -333,13 +335,13 @@ export default function DashboardPage() {
               <CardHeader className="pb-2">
                 <CardTitle className="flex items-center gap-2 text-xs font-semibold text-gray-500 uppercase tracking-wide">
                   <Users className="h-4 w-4 text-emerald-500" />
-                  Working Now ({(workingNowData ?? workingToday).length})
+                  {t("workingNow")} ({(workingNowData ?? workingToday).length})
                   <span className="ml-auto h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
                 </CardTitle>
               </CardHeader>
               <CardContent className="px-6 pb-4">
                 {(workingNowData ?? workingToday).length === 0 ? (
-                  <p className="text-sm text-gray-400 py-4">No one active right now.</p>
+                  <p className="text-sm text-gray-400 py-4">{t("noOneActive")}</p>
                 ) : (workingNowData ?? workingToday).slice(0, 8).map((e) => (
                   <div key={e.id}
                     onClick={() => router.push(`/employees/${e.id}`)}
@@ -370,7 +372,7 @@ export default function DashboardPage() {
               <CardHeader className="pb-2">
                 <CardTitle className="flex items-center gap-2 text-xs font-semibold text-gray-500 uppercase tracking-wide">
                   <CheckSquare className="h-4 w-4 text-purple-500" />
-                  Tasks Overview
+                  {t("tasksOverview")}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -398,19 +400,19 @@ export default function DashboardPage() {
           <DialogContent className={qaModal === "task" ? "max-w-lg" : "max-w-sm"}>
             <DialogHeader>
               <DialogTitle>
-                {qaModal === "client" && "New Client"}
-                {qaModal === "lead" && "New Lead"}
-                {qaModal === "task" && "New Task"}
-                {qaModal === "project" && "New Project"}
+                {qaModal === "client" && t("newClientTitle")}
+                {qaModal === "lead" && t("newLeadTitle")}
+                {qaModal === "task" && t("newTaskTitle")}
+                {qaModal === "project" && t("newProjectTitle")}
               </DialogTitle>
             </DialogHeader>
             <div className="space-y-3 pt-1">
               <div>
                 <Label className="text-xs text-gray-500 mb-1 block">
-                  {qaModal === "client" && "Company Name *"}
-                  {qaModal === "lead" && "Lead Name *"}
-                  {qaModal === "task" && "Task Title *"}
-                  {qaModal === "project" && "Project Name *"}
+                  {qaModal === "client" && `${t("companyName")} *`}
+                  {qaModal === "lead" && `${t("leadName")} *`}
+                  {qaModal === "task" && `${t("taskTitle")} *`}
+                  {qaModal === "project" && `${t("projectName")} *`}
                 </Label>
                 <Input
                   autoFocus
@@ -426,29 +428,29 @@ export default function DashboardPage() {
               </div>
               {(qaModal === "lead") && (
                 <div>
-                  <Label className="text-xs text-gray-500 mb-1 block">Company Name</Label>
+                  <Label className="text-xs text-gray-500 mb-1 block">{t("companyName")}</Label>
                   <Input value={qaExtra} onChange={(e) => setQaExtra(e.target.value)} placeholder="Optional" />
                 </div>
               )}
               {(qaModal === "task" || qaModal === "project") && (
                 <div>
-                  <Label className="text-xs text-gray-500 mb-1 block">Priority</Label>
+                  <Label className="text-xs text-gray-500 mb-1 block">{t("priority")}</Label>
                   <select
                     className="w-full h-9 border border-gray-200 dark:border-gray-700 rounded-lg px-3 text-sm bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     value={qaExtra}
                     onChange={(e) => setQaExtra(e.target.value)}
                   >
-                    <option value="low">Low</option>
-                    <option value="medium">Medium</option>
-                    <option value="high">High</option>
-                    <option value="urgent">Urgent</option>
+                    <option value="low">{t("low")}</option>
+                    <option value="medium">{t("medium")}</option>
+                    <option value="high">{t("high")}</option>
+                    <option value="urgent">{t("urgent")}</option>
                   </select>
                 </div>
               )}
               {qaModal === "task" && (
                 <>
                   <div>
-                    <Label className="text-xs text-gray-500 mb-1 block">Description</Label>
+                    <Label className="text-xs text-gray-500 mb-1 block">{t("description")}</Label>
                     <textarea
                       className="w-full min-h-[60px] border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
                       value={qaTaskForm.description}
@@ -459,17 +461,17 @@ export default function DashboardPage() {
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <Label className="text-xs text-gray-500 mb-1 block">Assign to</Label>
+                      <Label className="text-xs text-gray-500 mb-1 block">{t("assignTo")}</Label>
                       <select className="w-full h-9 border border-gray-200 dark:border-gray-700 rounded-lg px-3 text-sm bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
                         value={qaTaskForm.assigned_to} onChange={(e) => setQaTaskForm(f => ({ ...f, assigned_to: e.target.value }))}>
-                        <option value="">Unassigned</option>
+                        <option value="">{t("unassigned")}</option>
                         {(employeeNames ?? []).map((emp) => (
                           <option key={emp.id} value={emp.user_id ?? emp.id}>{emp.full_name}</option>
                         ))}
                       </select>
                     </div>
                     <div>
-                      <Label className="text-xs text-gray-500 mb-1 block">Project</Label>
+                      <Label className="text-xs text-gray-500 mb-1 block">{t("project")}</Label>
                       <select className="w-full h-9 border border-gray-200 dark:border-gray-700 rounded-lg px-3 text-sm bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
                         value={qaTaskForm.project_id} onChange={(e) => setQaTaskForm(f => ({ ...f, project_id: e.target.value }))}>
                         <option value="">None</option>
@@ -479,32 +481,32 @@ export default function DashboardPage() {
                       </select>
                     </div>
                     <div>
-                      <Label className="text-xs text-gray-500 mb-1 block">Task Type</Label>
+                      <Label className="text-xs text-gray-500 mb-1 block">{t("taskType")}</Label>
                       <select className="w-full h-9 border border-gray-200 dark:border-gray-700 rounded-lg px-3 text-sm bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
                         value={qaTaskForm.task_type} onChange={(e) => setQaTaskForm(f => ({ ...f, task_type: e.target.value }))}>
-                        <option value="">General</option>
-                        <option value="design">Design</option>
-                        <option value="video_editing">Video Editing</option>
-                        <option value="motion_graphics">Motion Graphics</option>
+                        <option value="">{t("general")}</option>
+                        <option value="design">{t("design")}</option>
+                        <option value="video_editing">{t("videoEditing")}</option>
+                        <option value="motion_graphics">{t("motionGraphics")}</option>
                         <option value="shooting">Shooting</option>
-                        <option value="social_media">Social Media</option>
-                        <option value="content_writing">Content Writing</option>
-                        <option value="web_development">Web Development</option>
-                        <option value="seo">SEO</option>
+                        <option value="social_media">{t("socialMedia")}</option>
+                        <option value="content_writing">{t("contentWriting")}</option>
+                        <option value="web_development">{t("webDevelopment")}</option>
+                        <option value="seo">{t("seo")}</option>
                       </select>
                     </div>
                     <div>
-                      <Label className="text-xs text-gray-500 mb-1 block">Estimated Hours</Label>
+                      <Label className="text-xs text-gray-500 mb-1 block">{t("estimatedHours")}</Label>
                       <Input type="number" min={0} step={0.5} value={qaTaskForm.estimated_hours}
                         onChange={(e) => setQaTaskForm(f => ({ ...f, estimated_hours: e.target.value }))} placeholder="e.g. 4" />
                     </div>
                     <div>
-                      <Label className="text-xs text-gray-500 mb-1 block">Due Date</Label>
+                      <Label className="text-xs text-gray-500 mb-1 block">{t("dueDate")}</Label>
                       <Input type="date" value={qaTaskForm.due_date}
                         onChange={(e) => setQaTaskForm(f => ({ ...f, due_date: e.target.value }))} />
                     </div>
                     <div>
-                      <Label className="text-xs text-gray-500 mb-1 block">Start Date</Label>
+                      <Label className="text-xs text-gray-500 mb-1 block">{t("startDate")}</Label>
                       <Input type="date" value={qaTaskForm.start_date}
                         onChange={(e) => setQaTaskForm(f => ({ ...f, start_date: e.target.value }))} />
                     </div>
@@ -512,9 +514,9 @@ export default function DashboardPage() {
                 </>
               )}
               <div className="flex justify-end gap-2 pt-1">
-                <Button variant="outline" size="sm" onClick={() => setQaModal(null)}>Cancel</Button>
+                <Button variant="outline" size="sm" onClick={() => setQaModal(null)}>{t("cancel")}</Button>
                 <Button size="sm" onClick={() => qaMutation.mutate()} disabled={!qaName.trim() || qaMutation.isPending}>
-                  {qaMutation.isPending ? "Creating…" : "Create"}
+                  {qaMutation.isPending ? `${t("loading")}` : t("create")}
                 </Button>
               </div>
             </div>

@@ -23,21 +23,24 @@ import { useSidebarStore } from "@/store/sidebar";
 import { Sidebar, SidebarBody, useSidebar } from "@/components/ui/sidebar";
 import { motion } from "framer-motion";
 import { useState } from "react";
+import { useTranslation } from "@/hooks/useTranslation";
+import type { TranslationKey } from "@/lib/i18n";
+import { Languages } from "lucide-react";
 
-const navItems = [
-  { href: "/dashboard",  label: "Dashboard",   icon: LayoutDashboard, permissions: null },
-  { href: "/employees",  label: "Employees",    icon: Users,           permissions: ["view_employees"] },
-  { href: "/clients",    label: "Clients",      icon: Building2,       permissions: ["view_all_clients", "view_assigned_clients"] },
-  { href: "/leads",      label: "Leads",        icon: UserCheck,       permissions: ["view_all_leads", "view_assigned_leads"] },
-  { href: "/projects",   label: "Projects",     icon: FolderKanban,    permissions: ["view_all_projects", "view_assigned_projects"] },
-  { href: "/tasks",      label: "Tasks",        icon: CheckSquare,     permissions: ["view_all_tasks", "view_assigned_tasks"] },
-  { href: "/finance",    label: "Finance",      icon: DollarSign,      permissions: ["view_finance"] },
-  { href: "/reports",    label: "Reports",      icon: BarChart3,       permissions: ["view_reports"] },
-  { href: "/calendar",    label: "Calendar",     icon: CalendarDays,  permissions: null },
-  { href: "/content-planner", label: "Content",  icon: BookOpen,        permissions: ["view_content"] },
-  { href: "/ai",          label: "AI Features",  icon: Sparkles,     permissions: ["access_ai_tools"] },
-  { href: "/leaderboard", label: "Leaderboard",  icon: Trophy,        permissions: null },
-  { href: "/settings",    label: "Settings",     icon: Settings,      permissions: null },
+const navItems: { href: string; labelKey: TranslationKey; icon: typeof LayoutDashboard; permissions: string[] | null }[] = [
+  { href: "/dashboard",  labelKey: "dashboard",   icon: LayoutDashboard, permissions: null },
+  { href: "/employees",  labelKey: "employees",    icon: Users,           permissions: ["view_employees"] },
+  { href: "/clients",    labelKey: "clients",      icon: Building2,       permissions: ["view_all_clients", "view_assigned_clients"] },
+  { href: "/leads",      labelKey: "leads",        icon: UserCheck,       permissions: ["view_all_leads", "view_assigned_leads"] },
+  { href: "/projects",   labelKey: "projects",     icon: FolderKanban,    permissions: ["view_all_projects", "view_assigned_projects"] },
+  { href: "/tasks",      labelKey: "tasks",        icon: CheckSquare,     permissions: ["view_all_tasks", "view_assigned_tasks"] },
+  { href: "/finance",    labelKey: "finance",      icon: DollarSign,      permissions: ["view_finance"] },
+  { href: "/reports",    labelKey: "reports",      icon: BarChart3,       permissions: ["view_reports"] },
+  { href: "/calendar",    labelKey: "calendar",     icon: CalendarDays,  permissions: null },
+  { href: "/content-planner", labelKey: "content",  icon: BookOpen,        permissions: ["view_content"] },
+  { href: "/ai",          labelKey: "aiFeatures",  icon: Sparkles,     permissions: ["access_ai_tools"] },
+  { href: "/leaderboard", labelKey: "leaderboard",  icon: Trophy,        permissions: null },
+  { href: "/settings",    labelKey: "settings",     icon: Settings,      permissions: null },
 ];
 
 function SidebarContent() {
@@ -45,6 +48,7 @@ function SidebarContent() {
   const router = useRouter();
   const { user, logout, hasPermission } = useAuthStore();
   const { open } = useSidebar();
+  const { t, locale, setLocale } = useTranslation();
 
   const visibleItems = navItems.filter((item) =>
     !item.permissions ? true : item.permissions.some((p) => hasPermission(p))
@@ -81,7 +85,8 @@ function SidebarContent() {
 
         {/* Nav */}
         <nav className="flex flex-col gap-0.5">
-          {visibleItems.map(({ href, label, icon: Icon }) => {
+          {visibleItems.map(({ href, labelKey, icon: Icon }) => {
+            const label = t(labelKey);
             const active = pathname === href || pathname.startsWith(href + "/");
             return (
               <a
@@ -125,15 +130,31 @@ function SidebarContent() {
               {user?.full_name}
             </p>
             <p className="text-xs text-gray-400 truncate max-w-[150px]">
-              {user?.is_superuser ? "Super Admin" : user?.email}
+              {user?.is_superuser ? t("superAdmin") : user?.email}
             </p>
           </motion.div>
         </div>
 
+        {/* Language Switcher */}
+        <button
+          onClick={() => setLocale(locale === "en" ? "ar" : "en")}
+          title={!open ? t("switchLanguage") : undefined}
+          className="flex items-center gap-3 rounded-lg px-2 py-2 text-sm text-gray-400 hover:bg-gray-800 hover:text-white transition-colors w-full"
+        >
+          <Languages className="h-4 w-4 shrink-0" />
+          <motion.span
+            animate={{ opacity: open ? 1 : 0, display: open ? "inline" : "none" }}
+            transition={{ duration: 0.15 }}
+            className="whitespace-nowrap"
+          >
+            {locale === "en" ? "العربية" : "English"}
+          </motion.span>
+        </button>
+
         {/* Logout */}
         <button
           onClick={handleLogout}
-          title={!open ? "Logout" : undefined}
+          title={!open ? t("logout") : undefined}
           className="flex items-center gap-3 rounded-lg px-2 py-2 text-sm text-gray-400 hover:bg-gray-800 hover:text-white transition-colors w-full"
         >
           <LogOut className="h-4 w-4 shrink-0" />
@@ -142,11 +163,9 @@ function SidebarContent() {
             transition={{ duration: 0.15 }}
             className="whitespace-nowrap"
           >
-            Logout
+            {t("logout")}
           </motion.span>
         </button>
-
-        {/* Version */}
 
       </div>
     </SidebarBody>

@@ -16,7 +16,9 @@ import { NativeSelect } from "@/components/ui/native-select";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { Plus, DollarSign, TrendingUp, Clock, Pencil, Trash2, Receipt, CheckCircle, XCircle, TrendingDown, Scale, FileText } from "lucide-react";
+import { useTranslation } from "@/hooks/useTranslation";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
+import { FilterDropdown } from "@/components/shared/FilterDropdown";
 import type { Invoice, Client, RevenueMonth, Expense } from "@/types";
 import { format } from "date-fns";
 
@@ -49,6 +51,7 @@ interface PaymentForm {
 }
 
 export default function FinancePage() {
+  const { t } = useTranslation();
   const [invoiceOpen, setInvoiceOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<Invoice | null>(null);
@@ -310,7 +313,7 @@ export default function FinancePage() {
 
   return (
     <>
-      <TopBar title="Finance" />
+      <TopBar title={t("finance")} />
       <main className="flex-1 p-3 sm:p-6 space-y-4 sm:space-y-6 bg-gray-50 min-h-full">
         {/* Date range picker + preset buttons */}
         <div className="flex flex-wrap items-center gap-3">
@@ -357,10 +360,10 @@ export default function FinancePage() {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-          <StatCard title="Total Collected" value={`$${totalCollected.toLocaleString()}`} icon={DollarSign} color="green" />
-          <StatCard title="Pending Collection" value={`$${pendingTotal.toLocaleString()}`} icon={TrendingUp} color="yellow" />
-          <StatCard title="Overdue Invoices" value={overdueCount} icon={Clock} color="red" />
-          <StatCard title="Total Expenses" value={`$${totalExpenses.toLocaleString()}`} icon={TrendingDown} color="orange" />
+          <StatCard title={t("totalRevenue")} value={`$${totalCollected.toLocaleString()}`} icon={DollarSign} color="green" />
+          <StatCard title={t("outstandingInvoices")} value={`$${pendingTotal.toLocaleString()}`} icon={TrendingUp} color="yellow" />
+          <StatCard title={t("overdue")} value={overdueCount} icon={Clock} color="red" />
+          <StatCard title={t("totalExpenses")} value={`$${totalExpenses.toLocaleString()}`} icon={TrendingDown} color="orange" />
           <StatCard
             title="Net Balance"
             value={`${totalBalance >= 0 ? "" : "-"}$${Math.abs(totalBalance).toLocaleString()}`}
@@ -372,22 +375,20 @@ export default function FinancePage() {
         <Tabs defaultValue="invoices">
           <div className="flex items-center justify-between flex-wrap gap-3">
             <TabsList>
-              <TabsTrigger value="invoices">Invoices</TabsTrigger>
-              <TabsTrigger value="expenses">Expenses</TabsTrigger>
+              <TabsTrigger value="invoices">{t("invoices")}</TabsTrigger>
+              <TabsTrigger value="expenses">{t("expenses")}</TabsTrigger>
               <TabsTrigger value="revenue">Revenue</TabsTrigger>
             </TabsList>
             <div className="flex flex-wrap items-center gap-3">
-              <div className="flex gap-1 flex-wrap">
-                {statusOptions.map((s) => (
-                  <button key={s} onClick={() => setStatusFilter(s)}
-                    className={`px-2 py-0.5 rounded-full text-xs font-medium border transition-colors ${statusFilter === s ? "bg-blue-600 text-white border-blue-600" : "bg-white text-gray-600 border-gray-200 hover:border-gray-400"}`}
-                  >
-                    {s === "all" ? "All" : s}
-                  </button>
-                ))}
-              </div>
+              <FilterDropdown
+                value={statusFilter}
+                onChange={setStatusFilter}
+                options={statusOptions.map((s) => ({ value: s, label: s === "all" ? t("all") : s.charAt(0).toUpperCase() + s.slice(1) }))}
+                placeholder={t("paymentStatus")}
+                accentColor="text-blue-600"
+              />
               <Button onClick={() => { resetInv(); setInvoiceOpen(true); }}>
-                <Plus className="h-4 w-4 mr-2" /> New Invoice
+                <Plus className="h-4 w-4 mr-2" /> {t("createInvoice")}
               </Button>
             </div>
           </div>
@@ -400,7 +401,7 @@ export default function FinancePage() {
             <div className="flex justify-between items-center mb-3">
               <p className="text-sm text-gray-500 dark:text-gray-400">Total: <span className="font-semibold text-red-600 dark:text-red-400">${allExpensesTotal.toLocaleString("en-US", { minimumFractionDigits: 2 })}</span></p>
               <Button size="sm" onClick={() => { setEditExpense(null); resetExp({ expense_date: format(new Date(), "yyyy-MM-dd") }); setExpenseOpen(true); }}>
-                <Plus className="h-4 w-4 mr-2" />Add Expense
+                <Plus className="h-4 w-4 mr-2" />{t("addExpense")}
               </Button>
             </div>
             <DataTable columns={expenseColumns} data={allExpensesForTab} emptyMessage="No expenses yet." exportable paginated defaultPageSize={10} />
@@ -437,7 +438,7 @@ export default function FinancePage() {
               <div className="flex flex-wrap items-center gap-2">
                 <div className="p-1.5 bg-white/20 rounded-lg"><Receipt className="h-4 w-4 text-white" /></div>
                 <div>
-                  <h2 className="text-base font-semibold text-white">New Invoice</h2>
+                  <h2 className="text-base font-semibold text-white">{t("createInvoice")}</h2>
                   <p className="text-xs text-amber-100">Create a new invoice for a client</p>
                 </div>
               </div>
@@ -466,14 +467,14 @@ export default function FinancePage() {
                     {(clients ?? []).map((c) => <option key={c.id} value={String(c.id)}>{c.company_name}</option>)}
                   </NativeSelect>
                 </div>
-                <div><Label>Issue Date *</Label><Input type="date" {...regInv("issue_date", { required: true })} className="mt-1" /></div>
+                <div><Label>{t("issueDate")} *</Label><Input type="date" {...regInv("issue_date", { required: true })} className="mt-1" /></div>
                 <div><Label>Due Date *</Label><Input type="date" {...regInv("due_date", { required: true })} className="mt-1" /></div>
-                <div className="col-span-2"><Label>Subtotal ($) *</Label><Input type="number" step="0.01" {...regInv("subtotal", { required: true })} className="mt-1" /></div>
-                <div className="col-span-2"><Label>Notes</Label><Input {...regInv("notes")} className="mt-1" /></div>
+                <div className="col-span-2"><Label>{t("subtotal")} ($) *</Label><Input type="number" step="0.01" {...regInv("subtotal", { required: true })} className="mt-1" /></div>
+                <div className="col-span-2"><Label>{t("notes")}</Label><Input {...regInv("notes")} className="mt-1" /></div>
               </div>
               <div className="flex justify-end gap-2 pt-2">
-                <Button type="button" variant="outline" onClick={() => setInvoiceOpen(false)}>Cancel</Button>
-                <Button type="submit" disabled={createInvoiceMutation.isPending} className="bg-amber-500 hover:bg-amber-600 text-white">{createInvoiceMutation.isPending ? "Saving..." : "Create"}</Button>
+                <Button type="button" variant="outline" onClick={() => setInvoiceOpen(false)}>{t("cancel")}</Button>
+                <Button type="submit" disabled={createInvoiceMutation.isPending} className="bg-amber-500 hover:bg-amber-600 text-white">{createInvoiceMutation.isPending ? t("loading") : t("create")}</Button>
               </div>
             </form>
           </DialogContent>
@@ -482,7 +483,7 @@ export default function FinancePage() {
         {/* Edit Invoice Dialog */}
         <Dialog open={editOpen} onOpenChange={setEditOpen}>
           <DialogContent className="w-[calc(100vw-2rem)] max-w-lg">
-            <DialogHeader><DialogTitle>Edit Invoice</DialogTitle></DialogHeader>
+            <DialogHeader><DialogTitle>{t("editInvoice")}</DialogTitle></DialogHeader>
             {editTarget && (
               <form
                 onSubmit={handleEditInv((d) => updateInvoiceMutation.mutate({
@@ -504,21 +505,21 @@ export default function FinancePage() {
                       {(clients ?? []).map((c) => <option key={c.id} value={String(c.id)}>{c.company_name}</option>)}
                     </NativeSelect>
                   </div>
-                  <div><Label>Issue Date</Label><Input type="date" {...regEdit("issue_date")} className="mt-1" /></div>
+                  <div><Label>{t("issueDate")}</Label><Input type="date" {...regEdit("issue_date")} className="mt-1" /></div>
                   <div><Label>Due Date</Label><Input type="date" {...regEdit("due_date")} className="mt-1" /></div>
                   <div>
-                    <Label>Payment Status</Label>
+                    <Label>{t("paymentStatus")}</Label>
                     <NativeSelect className="mt-1" defaultValue={editTarget.payment_status} onChange={(e) => updateInvoiceMutation.mutate({ id: editTarget.id, body: { payment_status: e.target.value } })}>
                       {PAYMENT_STATUSES.map((s) => (
                         <option key={s} value={s}>{s}</option>
                       ))}
                     </NativeSelect>
                   </div>
-                  <div className="col-span-2"><Label>Notes</Label><Input {...regEdit("notes")} className="mt-1" /></div>
+                  <div className="col-span-2"><Label>{t("notes")}</Label><Input {...regEdit("notes")} className="mt-1" /></div>
                 </div>
                 <div className="flex justify-end gap-2 pt-2">
-                  <Button type="button" variant="outline" onClick={() => setEditOpen(false)}>Cancel</Button>
-                  <Button type="submit" disabled={updateInvoiceMutation.isPending}>{updateInvoiceMutation.isPending ? "Saving..." : "Save"}</Button>
+                  <Button type="button" variant="outline" onClick={() => setEditOpen(false)}>{t("cancel")}</Button>
+                  <Button type="submit" disabled={updateInvoiceMutation.isPending}>{updateInvoiceMutation.isPending ? t("loading") : t("save")}</Button>
                 </div>
               </form>
             )}
@@ -536,12 +537,12 @@ export default function FinancePage() {
               })}
               className="space-y-3"
             >
-              <div><Label>Amount ($)</Label><Input type="number" step="0.01" {...regPay("amount", { required: true })} className="mt-1" /></div>
-              <div><Label>Payment Date</Label><Input type="date" {...regPay("payment_date")} className="mt-1" /></div>
-              <div><Label>Method</Label><Input {...regPay("payment_method")} placeholder="bank_transfer, cash, cheque..." className="mt-1" /></div>
+              <div><Label>{t("amount")} ($)</Label><Input type="number" step="0.01" {...regPay("amount", { required: true })} className="mt-1" /></div>
+              <div><Label>{t("paymentDate")}</Label><Input type="date" {...regPay("payment_date")} className="mt-1" /></div>
+              <div><Label>{t("paymentMethod")}</Label><Input {...regPay("payment_method")} placeholder="bank_transfer, cash, cheque..." className="mt-1" /></div>
               <div className="flex justify-end gap-2 pt-2">
-                <Button type="button" variant="outline" onClick={() => setPaymentOpen(false)}>Cancel</Button>
-                <Button type="submit" disabled={recordPaymentMutation.isPending}>{recordPaymentMutation.isPending ? "Saving..." : "Record"}</Button>
+                <Button type="button" variant="outline" onClick={() => setPaymentOpen(false)}>{t("cancel")}</Button>
+                <Button type="submit" disabled={recordPaymentMutation.isPending}>{recordPaymentMutation.isPending ? t("loading") : t("addPayment")}</Button>
               </div>
             </form>
           </DialogContent>
@@ -559,7 +560,7 @@ export default function FinancePage() {
       {/* Expense Dialog */}
       <Dialog open={expenseOpen} onOpenChange={(v) => { setExpenseOpen(v); if (!v) setEditExpense(null); }}>
         <DialogContent className="w-[calc(100vw-2rem)] max-w-md">
-          <DialogHeader><DialogTitle>{editExpense ? "Edit Expense" : "Add Expense"}</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>{editExpense ? t("edit") : t("addExpense")}</DialogTitle></DialogHeader>
           <form
             onSubmit={handleExp((d) => {
               const body = { title: d.title, category: d.category || undefined, amount: parseFloat(d.amount), expense_date: d.expense_date, notes: d.notes || undefined };
@@ -568,10 +569,10 @@ export default function FinancePage() {
             })}
             className="space-y-3"
           >
-            <div><Label>Title *</Label><Input {...regExp("title", { required: true })} className="mt-1" /></div>
+            <div><Label>{t("title")} *</Label><Input {...regExp("title", { required: true })} className="mt-1" /></div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label>Category</Label>
+                <Label>{t("category")}</Label>
                 <NativeSelect {...regExp("category")} className="mt-1">
                   <option value="">Select category</option>
                   {["salary", "rent", "software", "marketing", "travel", "equipment", "utilities", "other"].map((c) => <option key={c} value={c} className="capitalize">{c}</option>)}

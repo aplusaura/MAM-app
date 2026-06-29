@@ -17,8 +17,10 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { Plus, Pencil, Trash2, UserCheck, Target, Sparkles, Link } from "lucide-react";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
+import { FilterDropdown } from "@/components/shared/FilterDropdown";
 import { LeadHoverCard } from "@/components/shared/HoverCards";
 import type { Lead, Client } from "@/types";
+import { useTranslation } from "@/hooks/useTranslation";
 import { format } from "date-fns";
 
 const STAGES = ["new_lead", "contacted", "meeting_scheduled", "qualified", "proposal_sent", "negotiation", "won", "lost"];
@@ -55,6 +57,7 @@ interface LeadForm {
 }
 
 export default function LeadsPage() {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<Lead | null>(null);
@@ -278,11 +281,11 @@ export default function LeadsPage() {
 
   return (
     <>
-      <TopBar title="Leads / CRM" />
+      <TopBar title={t("leads")} />
       <main className="flex-1 p-3 sm:p-6 space-y-4 bg-gray-50 min-h-full">
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-3 space-y-2.5">
           <div className="flex flex-wrap items-center gap-3">
-            <Input placeholder="Search leads…" value={search} onChange={(e) => setSearch(e.target.value)} className="flex-1 min-w-[140px] max-w-xs h-8 text-sm" />
+            <Input placeholder={`${t("search")} ${t("leads").toLowerCase()}…`} value={search} onChange={(e) => setSearch(e.target.value)} className="flex-1 min-w-[140px] max-w-xs h-8 text-sm" />
             <div className="flex-1" />
             <span className="text-xs text-gray-400 font-medium whitespace-nowrap">{filtered.length} results</span>
             <div className="h-4 w-px bg-gray-200" />
@@ -290,17 +293,16 @@ export default function LeadsPage() {
               <Sparkles className="h-3.5 w-3.5 mr-1" />{scoringLoading ? "Scoring…" : "Score Leads"}
             </Button>
             <Button size="sm" className="h-8" onClick={() => { resetCreate(); setOpen(true); }}>
-              <Plus className="h-3.5 w-3.5 mr-1" /> New Lead
+              <Plus className="h-3.5 w-3.5 mr-1" /> {t("addNewLead")}
             </Button>
           </div>
-          <div className="flex gap-0.5 bg-gray-50 rounded-lg p-0.5 overflow-x-auto">
-            {["all", ...STAGES].map((s) => (
-              <button key={s} onClick={() => setStageFilter(s)}
-                className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors whitespace-nowrap ${stageFilter === s ? "bg-white shadow-sm text-blue-600 font-semibold" : "text-gray-500 hover:text-gray-700"}`}>
-                {s === "all" ? "All" : s.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase())}
-              </button>
-            ))}
-          </div>
+          <FilterDropdown
+            value={stageFilter}
+            onChange={setStageFilter}
+            options={[{ value: "all", label: t("all") }, ...STAGES.map((s) => ({ value: s, label: stageLabel(s), dot: STAGE_DOT[s] ?? "bg-gray-400" }))]}
+            placeholder={t("stage")}
+            accentColor="text-blue-600"
+          />
         </div>
 
         {/* Create Dialog */}
@@ -317,17 +319,17 @@ export default function LeadsPage() {
                 <div className="flex flex-wrap items-center gap-2">
                   <div className="p-1.5 bg-white/20 rounded-lg"><Target className="h-4 w-4 text-white" /></div>
                   <div>
-                    <h2 className="text-base font-semibold text-white">New Lead</h2>
+                    <h2 className="text-base font-semibold text-white">{t("addNewLead")}</h2>
                     <p className="text-xs text-purple-100">Add a potential client to your pipeline</p>
                   </div>
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-3">
-                <div><Label>Lead Name *</Label><Input {...regCreate("lead_name", { required: true })} className="mt-1" /></div>
-                <div><Label>Company</Label><Input {...regCreate("company_name")} className="mt-1" /></div>
-                <div><Label>Contact Person</Label><Input {...regCreate("contact_person")} className="mt-1" /></div>
-                <div><Label>Phone</Label><Input {...regCreate("phone")} className="mt-1" /></div>
-                <div><Label>Email</Label><Input type="email" {...regCreate("email")} className="mt-1" /></div>
+                <div><Label>{t("name")} *</Label><Input {...regCreate("lead_name", { required: true })} className="mt-1" /></div>
+                <div><Label>{t("name")}</Label><Input {...regCreate("company_name")} className="mt-1" /></div>
+                <div><Label>{t("name")}</Label><Input {...regCreate("contact_person")} className="mt-1" /></div>
+                <div><Label>{t("phone")}</Label><Input {...regCreate("phone")} className="mt-1" /></div>
+                <div><Label>{t("email")}</Label><Input type="email" {...regCreate("email")} className="mt-1" /></div>
                 <div>
                   <Label>Interested Service</Label>
                   <NativeSelect {...regCreate("interested_service")} className="mt-1">
@@ -336,17 +338,17 @@ export default function LeadsPage() {
                   </NativeSelect>
                 </div>
                 <div>
-                  <Label>Stage</Label>
+                  <Label>{t("stage")}</Label>
                   <NativeSelect {...regCreate("stage")} className="mt-1">
                     {STAGES.map((s) => <option key={s} value={s}>{s.replace(/_/g, " ")}</option>)}
                   </NativeSelect>
                 </div>
-                <div><Label>Expected Budget ($)</Label><Input type="number" {...regCreate("expected_budget")} className="mt-1" /></div>
-                <div className="col-span-2"><Label>Notes</Label><Input {...regCreate("notes")} className="mt-1" /></div>
+                <div><Label>{t("budget")} ($)</Label><Input type="number" {...regCreate("expected_budget")} className="mt-1" /></div>
+                <div className="col-span-2"><Label>{t("notes")}</Label><Input {...regCreate("notes")} className="mt-1" /></div>
               </div>
               <div className="flex justify-end gap-2 pt-2">
-                <Button type="button" variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
-                <Button type="submit" disabled={createMutation.isPending} className="bg-purple-600 hover:bg-purple-700 text-white">{createMutation.isPending ? "Saving…" : "Create"}</Button>
+                <Button type="button" variant="outline" onClick={() => setOpen(false)}>{t("cancel")}</Button>
+                <Button type="submit" disabled={createMutation.isPending} className="bg-purple-600 hover:bg-purple-700 text-white">{createMutation.isPending ? `${t("save")}…` : t("save")}</Button>
               </div>
             </form>
           </DialogContent>
@@ -355,7 +357,7 @@ export default function LeadsPage() {
         {/* Edit Dialog */}
         <Dialog open={editOpen} onOpenChange={setEditOpen}>
           <DialogContent className="w-[calc(100vw-2rem)] max-w-lg">
-            <DialogHeader><DialogTitle>Edit Lead</DialogTitle></DialogHeader>
+            <DialogHeader><DialogTitle>{t("editLead")}</DialogTitle></DialogHeader>
             {editTarget && (
               <form
                 onSubmit={handleEdit((d) => updateMutation.mutate({
@@ -365,11 +367,11 @@ export default function LeadsPage() {
                 className="space-y-3"
               >
                 <div className="grid grid-cols-2 gap-3">
-                  <div><Label>Lead Name *</Label><Input {...regEdit("lead_name", { required: true })} className="mt-1" /></div>
-                  <div><Label>Company</Label><Input {...regEdit("company_name")} className="mt-1" /></div>
-                  <div><Label>Contact Person</Label><Input {...regEdit("contact_person")} className="mt-1" /></div>
-                  <div><Label>Phone</Label><Input {...regEdit("phone")} className="mt-1" /></div>
-                  <div><Label>Email</Label><Input type="email" {...regEdit("email")} className="mt-1" /></div>
+                  <div><Label>{t("name")} *</Label><Input {...regEdit("lead_name", { required: true })} className="mt-1" /></div>
+                  <div><Label>{t("name")}</Label><Input {...regEdit("company_name")} className="mt-1" /></div>
+                  <div><Label>{t("name")}</Label><Input {...regEdit("contact_person")} className="mt-1" /></div>
+                  <div><Label>{t("phone")}</Label><Input {...regEdit("phone")} className="mt-1" /></div>
+                  <div><Label>{t("email")}</Label><Input type="email" {...regEdit("email")} className="mt-1" /></div>
                   <div>
                     <Label>Interested Service</Label>
                     <NativeSelect {...regEdit("interested_service")} className="mt-1">
@@ -378,17 +380,17 @@ export default function LeadsPage() {
                     </NativeSelect>
                   </div>
                   <div>
-                    <Label>Stage</Label>
+                    <Label>{t("stage")}</Label>
                     <NativeSelect {...regEdit("stage")} className="mt-1">
                       {STAGES.map((s) => <option key={s} value={s}>{s.replace(/_/g, " ")}</option>)}
                     </NativeSelect>
                   </div>
-                  <div><Label>Expected Budget ($)</Label><Input type="number" {...regEdit("expected_budget")} className="mt-1" /></div>
-                  <div className="col-span-2"><Label>Notes</Label><Input {...regEdit("notes")} className="mt-1" /></div>
+                  <div><Label>{t("budget")} ($)</Label><Input type="number" {...regEdit("expected_budget")} className="mt-1" /></div>
+                  <div className="col-span-2"><Label>{t("notes")}</Label><Input {...regEdit("notes")} className="mt-1" /></div>
                 </div>
                 <div className="flex justify-end gap-2 pt-2">
-                  <Button type="button" variant="outline" onClick={() => setEditOpen(false)}>Cancel</Button>
-                  <Button type="submit" disabled={updateMutation.isPending}>{updateMutation.isPending ? "Saving…" : "Save"}</Button>
+                  <Button type="button" variant="outline" onClick={() => setEditOpen(false)}>{t("cancel")}</Button>
+                  <Button type="submit" disabled={updateMutation.isPending}>{updateMutation.isPending ? `${t("save")}…` : t("save")}</Button>
                 </div>
               </form>
             )}
@@ -400,7 +402,7 @@ export default function LeadsPage() {
               columns={columns}
               data={filtered}
               isLoading={isLoading}
-              emptyMessage="No leads found."
+              emptyMessage={t("noData")}
               exportable
               paginated
               defaultPageSize={10}
@@ -428,7 +430,7 @@ export default function LeadsPage() {
       {/* Convert to Client Dialog */}
       <Dialog open={convertOpen} onOpenChange={setConvertOpen}>
         <DialogContent className="w-[calc(100vw-2rem)] max-w-md">
-          <DialogHeader><DialogTitle>Convert Lead to Client</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>{t("convertToClient")}</DialogTitle></DialogHeader>
           {convertTarget && (
             <form
               onSubmit={(e) => {
@@ -451,19 +453,19 @@ export default function LeadsPage() {
             >
               <div className="grid grid-cols-2 gap-3">
                 <div className="col-span-2">
-                  <Label>Company Name *</Label>
+                  <Label>{t("name")} *</Label>
                   <Input name="company_name" defaultValue={convertTarget.company_name ?? convertTarget.lead_name} required className="mt-1" />
                 </div>
                 <div>
-                  <Label>Contact Person</Label>
+                  <Label>{t("name")}</Label>
                   <Input name="contact_person" defaultValue={convertTarget.contact_person ?? ""} className="mt-1" />
                 </div>
                 <div>
-                  <Label>Phone</Label>
+                  <Label>{t("phone")}</Label>
                   <Input name="phone" defaultValue={(convertTarget as Lead & { phone?: string }).phone ?? ""} className="mt-1" />
                 </div>
                 <div className="col-span-2">
-                  <Label>Email</Label>
+                  <Label>{t("email")}</Label>
                   <Input name="email" type="email" defaultValue={(convertTarget as Lead & { email?: string }).email ?? ""} className="mt-1" />
                 </div>
                 <div className="col-span-2">
@@ -472,9 +474,9 @@ export default function LeadsPage() {
                 </div>
               </div>
               <div className="flex justify-end gap-2 pt-2">
-                <Button type="button" variant="outline" onClick={() => setConvertOpen(false)}>Cancel</Button>
+                <Button type="button" variant="outline" onClick={() => setConvertOpen(false)}>{t("cancel")}</Button>
                 <Button type="submit" disabled={convertMutation.isPending} className="bg-green-600 hover:bg-green-700">
-                  {convertMutation.isPending ? "Converting…" : "Convert to Client"}
+                  {convertMutation.isPending ? `${t("convertToClient")}…` : t("convertToClient")}
                 </Button>
               </div>
             </form>
@@ -496,7 +498,7 @@ export default function LeadsPage() {
             </NativeSelect>
           </div>
           <div className="flex justify-end gap-2 pt-2">
-            <Button type="button" variant="outline" onClick={() => setBulkDialogOpen(false)}>Cancel</Button>
+            <Button type="button" variant="outline" onClick={() => setBulkDialogOpen(false)}>{t("cancel")}</Button>
             <Button
               type="button"
               onClick={async () => {
@@ -515,7 +517,7 @@ export default function LeadsPage() {
       <ConfirmDialog
         open={confirmOpen}
         onOpenChange={setConfirmOpen}
-        title="Delete Lead"
+        title={`${t("delete")} ${t("leads")}`}
         description={`Are you sure you want to delete ${confirmTarget?.lead_name}? This action cannot be undone.`}
         onConfirm={() => { if (confirmTarget) { deleteMutation.mutate(confirmTarget.id); setConfirmOpen(false); } }}
         loading={deleteMutation.isPending}

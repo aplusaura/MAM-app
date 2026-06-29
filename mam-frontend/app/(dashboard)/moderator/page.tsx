@@ -13,8 +13,10 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Task } from "@/types";
 import { format } from "date-fns";
+import { useTranslation } from "@/hooks/useTranslation";
 
 export default function ModeratorPage() {
+  const { t } = useTranslation();
   const qc = useQueryClient();
   const router = useRouter();
   const [confirmTarget, setConfirmTarget] = useState<Task | null>(null);
@@ -36,9 +38,9 @@ export default function ModeratorPage() {
 
   const columns: Column<Task>[] = [
     { key: "task_code", label: "#", render: (row) => <span className="text-xs text-gray-400 font-mono">{row.task_code ?? "—"}</span> },
-    { key: "title", label: "Task", render: (row) => <span className="font-medium text-sm text-gray-800">{row.title}</span> },
+    { key: "title", label: t("title"), render: (row) => <span className="font-medium text-sm text-gray-800">{row.title}</span> },
     {
-      key: "task_type", label: "Type",
+      key: "task_type", label: t("type"),
       render: (row) => row.task_type ? <span className="text-xs capitalize text-gray-500">{row.task_type.replace(/_/g, " ")}</span> : "—",
     },
     {
@@ -46,7 +48,7 @@ export default function ModeratorPage() {
       render: (row) => row.due_date ? format(new Date(row.due_date), "MMM d, yyyy") : "—",
     },
     {
-      key: "status", label: "Status",
+      key: "status", label: t("status"),
       render: (row) => <StatusBadge value={row.status} />,
     },
     {
@@ -59,7 +61,7 @@ export default function ModeratorPage() {
             className="h-7 text-xs text-gray-500"
             onClick={(e) => { e.stopPropagation(); router.push(`/tasks/${row.id}`); }}
           >
-            <Eye className="h-3.5 w-3.5 mr-1" />View
+            <Eye className="h-3.5 w-3.5 mr-1" />{t("view")}
           </Button>
           <Button
             size="sm"
@@ -75,7 +77,7 @@ export default function ModeratorPage() {
 
   return (
     <>
-      <TopBar title="Moderator Queue" />
+      <TopBar title={t("moderator")} />
       <main className="flex-1 p-3 sm:p-6 bg-gray-50 min-h-full">
         <div className="space-y-4">
           <div className="flex items-center gap-2">

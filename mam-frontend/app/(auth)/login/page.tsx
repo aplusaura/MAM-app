@@ -14,6 +14,7 @@ import { post, getErrorMessage } from "@/lib/api";
 import { useAuthStore } from "@/store/auth";
 import type { TokenResponse } from "@/types";
 import Link from "next/link";
+import { useTranslation } from "@/hooks/useTranslation";
 
 const schema = z.object({
   email: z.string().email("Invalid email"),
@@ -23,6 +24,7 @@ const schema = z.object({
 type FormData = z.infer<typeof schema>;
 
 export default function LoginPage() {
+  const { t } = useTranslation();
   const router = useRouter();
   const { setTokens } = useAuthStore();
   const [loading, setLoading] = useState(false);
@@ -52,12 +54,12 @@ export default function LoginPage() {
         <CardTitle className="text-2xl">
           <span className="text-blue-600">MAM</span> Agency OS
         </CardTitle>
-        <CardDescription>Sign in to your account</CardDescription>
+        <CardDescription>{t("description")}</CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div>
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email">{t("email")}</Label>
             <Input
               id="email"
               type="email"
@@ -91,7 +93,7 @@ export default function LoginPage() {
             )}
           </div>
           <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? "Signing in…" : "Sign in"}
+            {loading ? t("loading") : t("submit")}
           </Button>
         </form>
       </CardContent>

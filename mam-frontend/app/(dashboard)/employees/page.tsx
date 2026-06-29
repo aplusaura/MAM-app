@@ -19,6 +19,7 @@ import { toast } from "sonner";
 import { Plus, Copy, Eye, EyeOff, Pencil, Trash2, User, UserPlus } from "lucide-react";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { EmployeeHoverCard } from "@/components/shared/HoverCards";
+import { useTranslation } from "@/hooks/useTranslation";
 import type { Employee, EmployeeCreated, Department, Role } from "@/types";
 
 interface EmployeeForm {
@@ -46,6 +47,7 @@ export default function EmployeesPage() {
   const [confirmTarget, setConfirmTarget] = useState<Employee | null>(null);
   const qc = useQueryClient();
   const router = useRouter();
+  const { t } = useTranslation();
 
   const { data, isLoading, isError, refetch } = useQuery<Employee[]>({
     queryKey: ["employees"],
@@ -130,7 +132,7 @@ export default function EmployeesPage() {
       render: (_row, index) => <span className="text-xs text-muted-foreground">{(index ?? 0) + 1}</span>,
     },
     {
-      key: "full_name", label: "Name", sortable: true,
+      key: "full_name", label: t("name"), sortable: true,
       render: (row) => (
         <div className="flex flex-wrap items-center gap-3">
           <div className="h-8 w-8 rounded-full overflow-hidden bg-blue-100 text-blue-700 flex items-center justify-center text-xs font-bold shrink-0">
@@ -152,17 +154,17 @@ export default function EmployeesPage() {
       ),
     },
     {
-      key: "department_id", label: "Department", sortable: true,
+      key: "department_id", label: t("department"), sortable: true,
       render: (row) => row.department_id ? deptMap[row.department_id] ?? String(row.department_id) : "—",
     },
     {
-      key: "role_id", label: "Role",
+      key: "role_id", label: t("role"),
       render: (row) => row.role_id ? (
         <span className="inline-flex items-center rounded-full border border-gray-200 px-2.5 py-0.5 text-xs text-gray-600">{roleMap[row.role_id] ?? String(row.role_id)}</span>
       ) : "—",
     },
-    { key: "status", label: "Status", sortable: true, render: (row) => <StatusBadge value={row.status} /> },
-    { key: "availability_status", label: "Availability", sortable: true, render: (row) => <StatusBadge value={row.availability_status} /> },
+    { key: "status", label: t("status"), sortable: true, render: (row) => <StatusBadge value={row.status} /> },
+    { key: "availability_status", label: t("availabilityStatus"), sortable: true, render: (row) => <StatusBadge value={row.availability_status} /> },
     {
       key: "skills", label: "Skills",
       render: (row) => row.skills?.length ? (
@@ -196,7 +198,7 @@ export default function EmployeesPage() {
 
   return (
     <>
-      <TopBar title="Employees" />
+      <TopBar title={t("employees")} />
       <main className="flex-1 p-3 sm:p-6 space-y-4 bg-gray-50 min-h-full">
         {isError && (
           <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-sm text-red-700">
@@ -208,7 +210,7 @@ export default function EmployeesPage() {
         )}
         {/* ── Toolbar ── */}
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-3 flex items-center gap-3">
-          <Input placeholder="Search employees..." value={search} onChange={(e) => setSearch(e.target.value)} className="flex-1 min-w-[140px] max-w-xs h-8 text-sm" />
+          <Input placeholder={`${t("search")}...`} value={search} onChange={(e) => setSearch(e.target.value)} className="flex-1 min-w-[140px] max-w-xs h-8 text-sm" />
           <NativeSelect value={deptFilter} onChange={(e) => setDeptFilter(e.target.value)} className="w-44 h-8 text-sm">
             <option value="">All Departments</option>
             {(departments ?? []).map((d) => <option key={d.id} value={String(d.id)}>{d.name}</option>)}
@@ -217,7 +219,7 @@ export default function EmployeesPage() {
           <span className="text-xs text-gray-400 font-medium whitespace-nowrap">{filtered.length} results</span>
           <div className="h-4 w-px bg-gray-200" />
           <Button size="sm" className="h-8" onClick={() => { resetCreate(); setOpen(true); }}>
-            <Plus className="h-3.5 w-3.5 mr-1" /> New Employee
+            <Plus className="h-3.5 w-3.5 mr-1" /> {t("addEmployee")}
           </Button>
         </div>
 
@@ -243,33 +245,33 @@ export default function EmployeesPage() {
               className="space-y-3"
             >
               <div className="grid grid-cols-2 gap-3">
-                <div className="col-span-2"><Label>Full Name *</Label><Input {...regCreate("full_name", { required: true })} className="mt-1" /></div>
-                <div><Label>Job Title</Label><Input {...regCreate("job_title")} className="mt-1" /></div>
-                <div><Label>Phone</Label><Input {...regCreate("phone")} className="mt-1" /></div>
+                <div className="col-span-2"><Label>{t("fullName")} *</Label><Input {...regCreate("full_name", { required: true })} className="mt-1" /></div>
+                <div><Label>{t("jobTitle")}</Label><Input {...regCreate("job_title")} className="mt-1" /></div>
+                <div><Label>{t("phone")}</Label><Input {...regCreate("phone")} className="mt-1" /></div>
                 <div>
-                  <Label>Department</Label>
+                  <Label>{t("department")}</Label>
                   <NativeSelect {...regCreate("department_id")} className="mt-1">
                     <option value="">Select department</option>
                     {(departments ?? []).map((d) => <option key={d.id} value={String(d.id)}>{d.name}</option>)}
                   </NativeSelect>
                 </div>
                 <div>
-                  <Label>Role</Label>
+                  <Label>{t("role")}</Label>
                   <NativeSelect {...regCreate("role_id")} className="mt-1">
                     <option value="">Select role</option>
                     {(roles ?? []).map((r) => <option key={r.id} value={String(r.id)}>{r.name}</option>)}
                   </NativeSelect>
                 </div>
                 <div>
-                  <Label>Employment Type</Label>
+                  <Label>{t("employmentType")}</Label>
                   <NativeSelect {...regCreate("employment_type")} className="mt-1">
-                    {["full_time", "part_time", "contractor", "intern"].map((t) => (
-                      <option key={t} value={t}>{t.replace(/_/g, " ")}</option>
+                    {["full_time", "part_time", "contractor", "intern"].map((et) => (
+                      <option key={et} value={et}>{et.replace(/_/g, " ")}</option>
                     ))}
                   </NativeSelect>
                 </div>
                 <div>
-                  <Label>Status</Label>
+                  <Label>{t("status")}</Label>
                   <NativeSelect {...regCreate("status")} className="mt-1">
                     {["active", "inactive", "on_leave"].map((s) => <option key={s} value={s}>{s.replace(/_/g, " ")}</option>)}
                   </NativeSelect>
@@ -280,8 +282,8 @@ export default function EmployeesPage() {
                 </div>
               </div>
               <div className="flex justify-end gap-2 pt-2">
-                <Button type="button" variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
-                <Button type="submit" disabled={createMutation.isPending} className="bg-teal-600 hover:bg-teal-700 text-white">{createMutation.isPending ? "Saving..." : "Create"}</Button>
+                <Button type="button" variant="outline" onClick={() => setOpen(false)}>{t("cancel")}</Button>
+                <Button type="submit" disabled={createMutation.isPending} className="bg-teal-600 hover:bg-teal-700 text-white">{createMutation.isPending ? "Saving..." : t("create")}</Button>
               </div>
             </form>
           </DialogContent>
@@ -290,7 +292,7 @@ export default function EmployeesPage() {
         {/* Edit Dialog */}
         <Dialog open={editOpen} onOpenChange={setEditOpen}>
           <DialogContent className="w-[calc(100vw-2rem)] max-w-lg">
-            <DialogHeader><DialogTitle>Edit Employee</DialogTitle></DialogHeader>
+            <DialogHeader><DialogTitle>{t("editEmployee")}</DialogTitle></DialogHeader>
             {editTarget && (
               <form
                 onSubmit={handleEdit((d) => updateMutation.mutate({
@@ -305,39 +307,39 @@ export default function EmployeesPage() {
                 className="space-y-3"
               >
                 <div className="grid grid-cols-2 gap-3">
-                  <div className="col-span-2"><Label>Full Name *</Label><Input {...regEdit("full_name", { required: true })} className="mt-1" /></div>
-                  <div><Label>Job Title</Label><Input {...regEdit("job_title")} className="mt-1" /></div>
-                  <div><Label>Phone</Label><Input {...regEdit("phone")} className="mt-1" /></div>
+                  <div className="col-span-2"><Label>{t("fullName")} *</Label><Input {...regEdit("full_name", { required: true })} className="mt-1" /></div>
+                  <div><Label>{t("jobTitle")}</Label><Input {...regEdit("job_title")} className="mt-1" /></div>
+                  <div><Label>{t("phone")}</Label><Input {...regEdit("phone")} className="mt-1" /></div>
                   <div>
-                    <Label>Department</Label>
+                    <Label>{t("department")}</Label>
                     <NativeSelect {...regEdit("department_id")} className="mt-1">
                       <option value="">Select department</option>
                       {(departments ?? []).map((d) => <option key={d.id} value={String(d.id)}>{d.name}</option>)}
                     </NativeSelect>
                   </div>
                   <div>
-                    <Label>Role</Label>
+                    <Label>{t("role")}</Label>
                     <NativeSelect {...regEdit("role_id")} className="mt-1">
                       <option value="">Select role</option>
                       {(roles ?? []).map((r) => <option key={r.id} value={String(r.id)}>{r.name}</option>)}
                     </NativeSelect>
                   </div>
                   <div>
-                    <Label>Employment Type</Label>
+                    <Label>{t("employmentType")}</Label>
                     <NativeSelect {...regEdit("employment_type")} className="mt-1">
-                      {["full_time", "part_time", "contractor", "intern"].map((t) => (
-                        <option key={t} value={t}>{t.replace(/_/g, " ")}</option>
+                      {["full_time", "part_time", "contractor", "intern"].map((et) => (
+                        <option key={et} value={et}>{et.replace(/_/g, " ")}</option>
                       ))}
                     </NativeSelect>
                   </div>
                   <div>
-                    <Label>Status</Label>
+                    <Label>{t("status")}</Label>
                     <NativeSelect {...regEdit("status")} className="mt-1">
                       {["active", "inactive", "on_leave"].map((s) => <option key={s} value={s}>{s.replace(/_/g, " ")}</option>)}
                     </NativeSelect>
                   </div>
                   <div>
-                    <Label>Availability</Label>
+                    <Label>{t("availabilityStatus")}</Label>
                     <NativeSelect {...regEdit("availability_status")} className="mt-1">
                       {["available", "busy", "on_leave"].map((s) => <option key={s} value={s}>{s.replace(/_/g, " ")}</option>)}
                     </NativeSelect>
@@ -348,8 +350,8 @@ export default function EmployeesPage() {
                   </div>
                 </div>
                 <div className="flex justify-end gap-2 pt-2">
-                  <Button type="button" variant="outline" onClick={() => setEditOpen(false)}>Cancel</Button>
-                  <Button type="submit" disabled={updateMutation.isPending}>{updateMutation.isPending ? "Saving..." : "Save"}</Button>
+                  <Button type="button" variant="outline" onClick={() => setEditOpen(false)}>{t("cancel")}</Button>
+                  <Button type="submit" disabled={updateMutation.isPending}>{updateMutation.isPending ? "Saving..." : t("save")}</Button>
                 </div>
               </form>
             )}
@@ -403,7 +405,7 @@ export default function EmployeesPage() {
           columns={columns}
           data={filtered}
           isLoading={isLoading}
-          emptyMessage="No employees found."
+          emptyMessage={t("noData")}
           onRowClick={(row) => router.push(`/employees/${row.id}`)}
           renderHoverCard={(row) => (
             <EmployeeHoverCard
@@ -419,7 +421,7 @@ export default function EmployeesPage() {
       <ConfirmDialog
         open={confirmOpen}
         onOpenChange={setConfirmOpen}
-        title="Delete Employee"
+        title={`${t("delete")} ${t("employees")}`}
         description={`Are you sure you want to delete ${confirmTarget?.full_name}? This action cannot be undone.`}
         onConfirm={() => { if (confirmTarget) { deleteMutation.mutate(confirmTarget.id); setConfirmOpen(false); } }}
         loading={deleteMutation.isPending}

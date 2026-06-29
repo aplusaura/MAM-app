@@ -14,6 +14,7 @@ import {
   LineChart, Line, Cell,
 } from "recharts";
 import type { ProjectStats, TaskStats, RevenueMonth, Employee } from "@/types";
+import { useTranslation } from "@/hooks/useTranslation";
 
 const MONTH_NAMES: Record<number, string> = {
   1:"Jan",2:"Feb",3:"Mar",4:"Apr",5:"May",6:"Jun",
@@ -23,6 +24,7 @@ const MONTH_NAMES: Record<number, string> = {
 type ReportTab = "overview" | "team" | "employee";
 
 export default function ReportsPage() {
+  const { t } = useTranslation();
   const [tab, setTab] = useState<ReportTab>("overview");
   const [teamMonth, setTeamMonth] = useState(() => {
     const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
@@ -110,14 +112,14 @@ export default function ReportsPage() {
     revenue: Number(r.total),
   }));
 
-  const tabClass = (t: ReportTab) =>
+  const tabClass = (tb: ReportTab) =>
     `px-4 py-2.5 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
-      tab === t ? "border-blue-600 text-blue-600" : "border-transparent text-gray-500 hover:text-gray-700"
+      tab === tb ? "border-blue-600 text-blue-600" : "border-transparent text-gray-500 hover:text-gray-700"
     }`;
 
   return (
     <>
-      <TopBar title="Reports & Analytics" />
+      <TopBar title={t("reports")} />
       <main className="flex-1 p-3 sm:p-6 space-y-4 sm:space-y-6 bg-gray-50 min-h-full">
 
         {/* Tab nav */}

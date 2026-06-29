@@ -18,6 +18,7 @@ import {
   Pencil, Check, X, Lock, Globe, Phone, Mail, MapPin, Activity, Shield, Bell, CheckCircle2,
 } from "lucide-react";
 import type { Employee, Client, Project, Invoice, ActivityLog } from "@/types";
+import { useTranslation } from "@/hooks/useTranslation";
 
 interface ChangePasswordForm {
   current_password: string;
@@ -60,6 +61,7 @@ interface EmailNotificationSettings {
 
 export default function SettingsPage() {
   const { user } = useAuthStore();
+  const { t } = useTranslation();
   const isSuperAdmin = user?.is_superuser ?? false;
 
   const [agencyEdit, setAgencyEdit] = useState(false);
@@ -124,7 +126,7 @@ export default function SettingsPage() {
 
   return (
     <>
-      <TopBar title="Settings" />
+      <TopBar title={t("settings")} />
       <main className="flex-1 p-3 sm:p-6 bg-gray-50 min-h-full">
         <div className="max-w-4xl mx-auto space-y-6">
 
@@ -152,10 +154,10 @@ export default function SettingsPage() {
                 {agencyEdit && (
                   <div className="flex gap-2">
                     <button onClick={handleAgencySave} className="flex items-center gap-1.5 text-xs text-white bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-lg transition-colors">
-                      <Check className="h-3.5 w-3.5" /> Save
+                      <Check className="h-3.5 w-3.5" /> {t("save")}
                     </button>
                     <button onClick={() => setAgencyEdit(false)} className="flex items-center gap-1.5 text-xs text-white/70 hover:text-white bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-lg transition-colors">
-                      <X className="h-3.5 w-3.5" /> Cancel
+                      <X className="h-3.5 w-3.5" /> {t("cancel")}
                     </button>
                   </div>
                 )}
@@ -194,11 +196,11 @@ export default function SettingsPage() {
                       <Input value={agencyForm.tagline} onChange={(e) => setAgencyForm(f => ({ ...f, tagline: e.target.value }))} className="mt-1" />
                     </div>
                     <div>
-                      <Label className="text-xs text-gray-500">Email</Label>
+                      <Label className="text-xs text-gray-500">{t("email")}</Label>
                       <Input type="email" value={agencyForm.email} onChange={(e) => setAgencyForm(f => ({ ...f, email: e.target.value }))} className="mt-1" />
                     </div>
                     <div>
-                      <Label className="text-xs text-gray-500">Phone</Label>
+                      <Label className="text-xs text-gray-500">{t("phone")}</Label>
                       <Input value={agencyForm.phone} onChange={(e) => setAgencyForm(f => ({ ...f, phone: e.target.value }))} className="mt-1" />
                     </div>
                     <div>
@@ -259,11 +261,11 @@ export default function SettingsPage() {
             </div>
             <div className="p-6 grid grid-cols-1 sm:grid-cols-3 gap-6 text-sm">
               <div>
-                <p className="text-xs text-gray-400 mb-0.5">Full Name</p>
+                <p className="text-xs text-gray-400 mb-0.5">{t("fullName")}</p>
                 <p className="font-medium text-gray-800">{user?.full_name ?? "—"}</p>
               </div>
               <div>
-                <p className="text-xs text-gray-400 mb-0.5">Email</p>
+                <p className="text-xs text-gray-400 mb-0.5">{t("email")}</p>
                 <p className="font-medium text-gray-800">{user?.email ?? "—"}</p>
               </div>
               <div>

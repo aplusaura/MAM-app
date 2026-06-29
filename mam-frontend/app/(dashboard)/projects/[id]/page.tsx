@@ -13,8 +13,10 @@ import { ArrowLeft, FolderKanban, Calendar, DollarSign, Users, Flag, Plus, Trash
 import type { Project, Task, Client, Employee, Milestone } from "@/types";
 import { format } from "date-fns";
 import { useState } from "react";
+import { useTranslation } from "@/hooks/useTranslation";
 
 export default function ProjectDetailPage() {
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const projectId = parseInt(id);
@@ -92,10 +94,10 @@ export default function ProjectDetailPage() {
   if (!project && (projects ?? []).length > 0) {
     return (
       <>
-        <TopBar title="Project Not Found" />
+        <TopBar title={t("noData")} />
         <main className="flex-1 p-3 sm:p-6">
           <Button variant="outline" onClick={() => router.push("/projects")}>
-            <ArrowLeft className="h-4 w-4 mr-2" /> Back to Projects
+            <ArrowLeft className="h-4 w-4 mr-2" /> {t("projects")}
           </Button>
           <p className="mt-4 text-muted-foreground">This project could not be found.</p>
         </main>
@@ -105,7 +107,7 @@ export default function ProjectDetailPage() {
 
   return (
     <>
-      <TopBar title={project?.name ?? "Loading…"} />
+      <TopBar title={project?.name ?? `${t("loading")}…`} />
       <main className="flex-1 p-3 sm:p-6 space-y-4 sm:space-y-6">
         <Button variant="outline" size="sm" onClick={() => router.push("/projects")}>
           <ArrowLeft className="h-4 w-4 mr-2" /> Back
@@ -122,34 +124,34 @@ export default function ProjectDetailPage() {
             <CardContent>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
                 <div>
-                  <p className="text-xs text-muted-foreground mb-1">Status</p>
+                  <p className="text-xs text-muted-foreground mb-1">{t("status")}</p>
                   <StatusBadge value={project.status} />
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground mb-1">Priority</p>
+                  <p className="text-xs text-muted-foreground mb-1">{t("priority")}</p>
                   <StatusBadge value={project.priority} />
                 </div>
                 {project.client_id && (
                   <div>
-                    <p className="text-xs text-muted-foreground mb-1">Client</p>
+                    <p className="text-xs text-muted-foreground mb-1">{t("client")}</p>
                     <p className="text-sm font-medium">{clientMap[project.client_id] ?? String(project.client_id)}</p>
                   </div>
                 )}
                 {project.budget && (
                   <div>
-                    <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1"><DollarSign className="h-3 w-3" />Budget</p>
+                    <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1"><DollarSign className="h-3 w-3" />{t("budget")}</p>
                     <p className="text-sm font-medium">${Number(project.budget).toLocaleString()}</p>
                   </div>
                 )}
                 {project.start_date && (
                   <div>
-                    <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1"><Calendar className="h-3 w-3" />Start</p>
+                    <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1"><Calendar className="h-3 w-3" />{t("startDate")}</p>
                     <p className="text-sm">{format(new Date(project.start_date), "MMM d, yyyy")}</p>
                   </div>
                 )}
                 {project.due_date && (
                   <div>
-                    <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1"><Calendar className="h-3 w-3" />Due</p>
+                    <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1"><Calendar className="h-3 w-3" />{t("dueDate")}</p>
                     <p className="text-sm">{format(new Date(project.due_date), "MMM d, yyyy")}</p>
                   </div>
                 )}
@@ -177,7 +179,7 @@ export default function ProjectDetailPage() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Flag className="h-4 w-4 text-orange-500" />
-              <h2 className="font-semibold text-sm">Milestones ({milestones?.length ?? 0})</h2>
+              <h2 className="font-semibold text-sm">{t("milestones")} ({milestones?.length ?? 0})</h2>
             </div>
             <Button size="sm" variant="outline" onClick={() => setAddingMilestone((v) => !v)}>
               <Plus className="h-3 w-3 mr-1" /> Add
@@ -210,10 +212,10 @@ export default function ProjectDetailPage() {
                       })
                     }
                   >
-                    Save
+                    {t("save")}
                   </Button>
                   <Button size="sm" variant="ghost" onClick={() => setAddingMilestone(false)}>
-                    Cancel
+                    {t("cancel")}
                   </Button>
                 </div>
               </CardContent>
@@ -270,13 +272,13 @@ export default function ProjectDetailPage() {
         <div className="space-y-4">
           <div className="flex items-center gap-2">
             <Users className="h-4 w-4 text-purple-500" />
-            <h2 className="font-semibold text-sm">Tasks ({projectTasks.length})</h2>
+            <h2 className="font-semibold text-sm">{t("tasks")} ({projectTasks.length})</h2>
           </div>
 
           {tasksLoading ? (
-            <p className="text-sm text-muted-foreground">Loading tasks…</p>
+            <p className="text-sm text-muted-foreground">{t("loading")}…</p>
           ) : projectTasks.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No tasks in this project yet.</p>
+            <p className="text-sm text-muted-foreground">{t("noData")}</p>
           ) : (
             statusGroups.map((status) => {
               const group = tasksByStatus[status];

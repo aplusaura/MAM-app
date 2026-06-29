@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { FileText, Sparkles, ChevronRight, ChevronLeft, Printer } from "lucide-react";
+import { useTranslation } from "@/hooks/useTranslation";
 
 interface ProposalForm {
   client_name: string;
@@ -24,6 +25,7 @@ interface ProposalForm {
 const STEPS = ["Client Info", "Services & Scope", "Timeline & Budget", "Generate & Preview"];
 
 export default function ProposalsPage() {
+  const { t } = useTranslation();
   const [step, setStep] = useState(0);
   const [form, setForm] = useState<ProposalForm>({
     client_name: "", contact_name: "", service_type: "", scope_description: "",
@@ -59,7 +61,7 @@ export default function ProposalsPage() {
 
   return (
     <>
-      <TopBar title="Proposals" />
+      <TopBar title={t("proposals")} />
       <main className="flex-1 p-3 sm:p-6 bg-gray-50 dark:bg-gray-950 min-h-full">
         <div className="max-w-3xl mx-auto space-y-6">
           {/* Step indicators */}
@@ -164,7 +166,7 @@ export default function ProposalsPage() {
             {/* Navigation */}
             <div className="flex justify-between mt-6 pt-4 border-t border-gray-100 dark:border-gray-700">
               <Button variant="outline" onClick={() => setStep((s) => s - 1)} disabled={step === 0}>
-                <ChevronLeft className="h-4 w-4 mr-1" />Back
+                <ChevronLeft className="h-4 w-4 mr-1" />{t("back")}
               </Button>
               {step < STEPS.length - 1 ? (
                 <Button onClick={() => setStep((s) => s + 1)} disabled={!canNext}>

@@ -12,6 +12,7 @@ import { CalendarView, CalendarItem } from "@/components/shared/CalendarView";
 import { toast } from "sonner";
 import { CalendarDays, Plus, MapPin, Calendar, ShieldCheck, CheckSquare } from "lucide-react";
 import { format } from "date-fns";
+import { useTranslation } from "@/hooks/useTranslation";
 
 interface ShootingBrief {
   id: number;
@@ -51,6 +52,7 @@ type Tab = "shooting" | "moderation" | "general";
 export default function CalendarPage() {
   const qc = useQueryClient();
   const [tab, setTab] = useState<Tab>("shooting");
+  const { t } = useTranslation();
   const [openCreate, setOpenCreate] = useState(false);
   const [selected, setSelected] = useState<ShootingBrief | null>(null);
   const [form, setForm] = useState<ShootingForm>({
@@ -170,7 +172,7 @@ export default function CalendarPage() {
 
   return (
     <>
-      <TopBar title="Calendar" />
+      <TopBar title={t("calendar")} />
       <main className="flex-1 p-3 sm:p-6 bg-gray-50 dark:bg-gray-950 min-h-full">
         <div className="max-w-5xl mx-auto space-y-4">
           {/* Tab bar */}
@@ -291,12 +293,12 @@ export default function CalendarPage() {
             <div><Label>What Was Shot</Label><Input value={form.what_was_shot} onChange={(e) => setForm((f) => ({ ...f, what_was_shot: e.target.value }))} className="mt-1" /></div>
             <div><Label>Crew Present</Label><Input value={form.crew_present} onChange={(e) => setForm((f) => ({ ...f, crew_present: e.target.value }))} className="mt-1" /></div>
             <div className="flex justify-end gap-2 pt-2">
-              <Button variant="outline" onClick={() => setOpenCreate(false)}>Cancel</Button>
+              <Button variant="outline" onClick={() => setOpenCreate(false)}>{t("cancel")}</Button>
               <Button
                 onClick={() => createMutation.mutate()}
                 disabled={(!form.task_id && !form.new_task_title.trim()) || createMutation.isPending}
               >
-                Create
+                {t("create")}
               </Button>
             </div>
           </div>

@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { AlertCircle, CheckCircle2, Clock } from "lucide-react";
 import Link from "next/link";
+import { useTranslation } from "@/hooks/useTranslation";
 
 interface Alert {
   type: string;
@@ -31,6 +32,7 @@ const severityIcon = {
 };
 
 export default function AlertsPage() {
+  const { t } = useTranslation();
   const { data: alerts = [], isLoading } = useQuery<Alert[]>({
     queryKey: ["alerts"],
     queryFn: () => get("/alerts"),
@@ -39,20 +41,20 @@ export default function AlertsPage() {
   if (isLoading) {
     return (
       <>
-        <TopBar title="Alerts Center" version="v1.8.12" />
-        <div className="p-6">Loading alerts...</div>
+        <TopBar title={t("alerts")}  />
+        <div className="p-6">{t("loading")}</div>
       </>
     );
   }
 
   return (
     <>
-      <TopBar title="Alerts Center" version="v1.8.12" />
+      <TopBar title={t("alerts")}  />
       <main className="p-6 space-y-6">
         {alerts.length === 0 ? (
           <Card>
             <CardContent className="pt-6 text-center text-gray-500">
-              All clear! No active alerts.
+              {t("noData")}
             </CardContent>
           </Card>
         ) : (

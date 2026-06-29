@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import { Plus, Calendar, Pencil, Trash2, AlertCircle } from "lucide-react";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 import { format, parseISO } from "date-fns";
+import { useTranslation } from "@/hooks/useTranslation";
 
 interface ContentPlan {
   id: number;
@@ -36,6 +37,7 @@ interface ContentPlanForm {
 
 export default function ContentPlannerPage() {
   const qc = useQueryClient();
+  const { t } = useTranslation();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [deleteId, setDeleteId] = useState<number | null>(null);
@@ -119,7 +121,7 @@ export default function ContentPlannerPage() {
   const columns: Column<ContentPlan>[] = [
     {
       key: "title",
-      label: "Title",
+      label: t("title"),
       render: (row) => <span className="font-medium">{row.title}</span>,
     },
     {
@@ -133,7 +135,7 @@ export default function ContentPlannerPage() {
     },
     {
       key: "status",
-      label: "Status",
+      label: t("status"),
       render: (row) => (
         <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
           row.status === "active" ? "bg-blue-100 text-blue-700" :
@@ -146,7 +148,7 @@ export default function ContentPlannerPage() {
     },
     {
       key: "id",
-      label: "Actions",
+      label: t("actions"),
       render: (row) => (
         <div className="flex gap-2">
           <Button
@@ -172,7 +174,7 @@ export default function ContentPlannerPage() {
 
   return (
     <>
-      <TopBar title="Content Planner" />
+      <TopBar title={t("contentPlanner")} />
       <main className="flex-1 p-3 sm:p-6 space-y-6">
         {/* Header with Create Button */}
         <div className="flex items-center justify-between">
@@ -196,12 +198,12 @@ export default function ContentPlannerPage() {
           <CardContent className="pt-6">
             {isLoading ? (
               <div className="text-center py-8 text-muted-foreground">
-                Loading content plans...
+                {t("loading")}...
               </div>
             ) : !plans || plans.length === 0 ? (
               <div className="text-center py-8">
                 <AlertCircle className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
-                <p className="text-muted-foreground">No content plans yet</p>
+                <p className="text-muted-foreground">{t("noData")}</p>
                 <p className="text-sm text-muted-foreground mt-1">
                   Create a new plan to get started
                 </p>
@@ -230,7 +232,7 @@ export default function ContentPlannerPage() {
 
           <div className="space-y-4">
             <div>
-              <Label htmlFor="title">Title *</Label>
+              <Label htmlFor="title">{t("title")} *</Label>
               <Input
                 id="title"
                 placeholder="e.g., Q2 Social Media Campaign"
@@ -241,7 +243,7 @@ export default function ContentPlannerPage() {
             </div>
 
             <div>
-              <Label htmlFor="description">Description</Label>
+              <Label htmlFor="description">{t("description")}</Label>
               <Textarea
                 id="description"
                 placeholder="Brief description of the content plan..."
@@ -284,13 +286,13 @@ export default function ContentPlannerPage() {
                   setForm({ title: "", description: "", start_date: "", end_date: "" });
                 }}
               >
-                Cancel
+                {t("cancel")}
               </Button>
               <Button
                 onClick={editingId ? handleUpdate : handleCreate}
                 disabled={createMutation.isPending || updateMutation.isPending}
               >
-                {createMutation.isPending || updateMutation.isPending ? "Saving..." : "Save"}
+                {createMutation.isPending || updateMutation.isPending ? "Saving..." : t("save")}
               </Button>
             </div>
           </div>
@@ -299,14 +301,13 @@ export default function ContentPlannerPage() {
 
       {/* Delete Confirmation */}
       <ConfirmDialog
-        isOpen={deleteId !== null}
+        open={deleteId !== null}
+        onOpenChange={(v) => { if (!v) setDeleteId(null); }}
         title="Delete Content Plan"
-        message="Are you sure you want to delete this content plan? This action cannot be undone."
-        confirmText="Delete"
-        cancelText="Cancel"
+        description="Are you sure you want to delete this content plan? This action cannot be undone."
+        confirmLabel="Delete"
         onConfirm={() => deleteId && deleteMutation.mutate(deleteId)}
-        onCancel={() => setDeleteId(null)}
-        isLoading={deleteMutation.isPending}
+        loading={deleteMutation.isPending}
         variant="destructive"
       />
     </>

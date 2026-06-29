@@ -16,11 +16,13 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { Plus, Pencil, Trash2, LayoutList, LayoutGrid, CalendarDays, FolderPlus, Link, GanttChartSquare, Copy, X, Flag, Check } from "lucide-react";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
+import { FilterDropdown } from "@/components/shared/FilterDropdown";
 import { ProjectHoverCard } from "@/components/shared/HoverCards";
 import { KanbanBoard, KanbanItem, KanbanColumn } from "@/components/shared/KanbanBoard";
 import { CalendarView, CalendarItem } from "@/components/shared/CalendarView";
 import { PageTransition } from "@/components/shared/PageTransition";
 import type { Project, Client, Milestone } from "@/types";
+import { useTranslation } from "@/hooks/useTranslation";
 import { format } from "date-fns";
 
 const PROJECT_STATUSES = ["planning", "active", "on_hold", "completed", "cancelled"];
@@ -262,6 +264,7 @@ function MilestonesDialog({
   open: boolean;
   onOpenChange: (v: boolean) => void;
 }) {
+  const { t } = useTranslation();
   const qc = useQueryClient();
   const { register, handleSubmit, reset } = useForm<MilestoneForm>();
 
@@ -312,7 +315,7 @@ function MilestonesDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Flag className="h-4 w-4 text-indigo-500" />
-            Milestones — {project.name}
+            {t("milestones")} — {project.name}
           </DialogTitle>
         </DialogHeader>
 
@@ -399,7 +402,7 @@ function MilestonesDialog({
           className="border-t border-gray-100 pt-3 flex gap-2 items-end"
         >
           <div className="flex-1 space-y-1">
-            <Label className="text-xs">Title *</Label>
+            <Label className="text-xs">{t("title")} *</Label>
             <Input
               {...register("title", { required: true })}
               placeholder="Milestone title"
@@ -407,7 +410,7 @@ function MilestonesDialog({
             />
           </div>
           <div className="w-36 space-y-1">
-            <Label className="text-xs">Due date</Label>
+            <Label className="text-xs">{t("dueDate")}</Label>
             <Input type="date" {...register("due_date")} className="h-8 text-sm" />
           </div>
           <Button
@@ -426,6 +429,7 @@ function MilestonesDialog({
 }
 
 export default function ProjectsPage() {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<Project | null>(null);
@@ -665,43 +669,43 @@ export default function ProjectsPage() {
 
   const ProjectFormFields = ({ reg }: { reg: ReturnType<typeof useForm<ProjectForm>>["register"] }) => (
     <div className="grid grid-cols-2 gap-3">
-      <div className="col-span-2"><Label>Name *</Label><Input {...reg("name", { required: true })} className="mt-1" /></div>
-      <div className="col-span-2"><Label>Description</Label><Input {...reg("description")} className="mt-1" /></div>
+      <div className="col-span-2"><Label>{t("name")} *</Label><Input {...reg("name", { required: true })} className="mt-1" /></div>
+      <div className="col-span-2"><Label>{t("description")}</Label><Input {...reg("description")} className="mt-1" /></div>
       <div>
-        <Label>Client</Label>
+        <Label>{t("client")}</Label>
         <NativeSelect {...reg("client_id")} className="mt-1">
           <option value="">No client</option>
           {(clients ?? []).map((c) => <option key={c.id} value={String(c.id)}>{c.company_name}</option>)}
         </NativeSelect>
       </div>
       <div>
-        <Label>Status</Label>
+        <Label>{t("status")}</Label>
         <NativeSelect {...reg("status")} className="mt-1">
           {PROJECT_STATUSES.map((s) => <option key={s} value={s}>{s.replace(/_/g, " ")}</option>)}
         </NativeSelect>
       </div>
       <div>
-        <Label>Priority</Label>
+        <Label>{t("priority")}</Label>
         <NativeSelect {...reg("priority")} className="mt-1">
           {PRIORITIES.map((p) => <option key={p} value={p}>{p}</option>)}
         </NativeSelect>
       </div>
-      <div><Label>Project Type</Label><Input {...reg("project_type")} className="mt-1" placeholder="campaign, production..." /></div>
-      <div><Label>Start Date</Label><Input type="date" {...reg("start_date")} className="mt-1" /></div>
-      <div><Label>Due Date</Label><Input type="date" {...reg("due_date")} className="mt-1" /></div>
-      <div className="col-span-2"><Label>Budget ($)</Label><Input type="number" {...reg("budget")} className="mt-1" /></div>
+      <div><Label>{t("projectType")}</Label><Input {...reg("project_type")} className="mt-1" placeholder="campaign, production..." /></div>
+      <div><Label>{t("startDate")}</Label><Input type="date" {...reg("start_date")} className="mt-1" /></div>
+      <div><Label>{t("dueDate")}</Label><Input type="date" {...reg("due_date")} className="mt-1" /></div>
+      <div className="col-span-2"><Label>{t("budget")} ($)</Label><Input type="number" {...reg("budget")} className="mt-1" /></div>
     </div>
   );
 
   return (
     <>
-      <TopBar title="Projects" />
+      <TopBar title={t("projects")} />
       <main className="flex-1 p-3 sm:p-6 space-y-4">
         <PageTransition>
         {/* ── Toolbar ── */}
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-3 space-y-2.5">
           <div className="flex flex-wrap items-center gap-3">
-            <Input placeholder="Search projects..." value={search} onChange={(e) => setSearch(e.target.value)} className="flex-1 min-w-[140px] max-w-xs h-8 text-sm" />
+            <Input placeholder={`${t("search")} ${t("projects").toLowerCase()}...`} value={search} onChange={(e) => setSearch(e.target.value)} className="flex-1 min-w-[140px] max-w-xs h-8 text-sm" />
             <div className="flex-1" />
             <span className="text-xs text-gray-400 font-medium whitespace-nowrap">{filtered.length} results</span>
             <div className="h-4 w-px bg-gray-200" />
@@ -719,19 +723,16 @@ export default function ProjectsPage() {
               ))}
             </div>
             <Button size="sm" className="h-8" onClick={() => { resetCreate(); setOpen(true); }}>
-              <Plus className="h-3.5 w-3.5 mr-1" /> New Project
+              <Plus className="h-3.5 w-3.5 mr-1" /> {t("addNewProject")}
             </Button>
           </div>
-          <div className="flex items-center gap-1.5">
-            <div className="flex gap-0.5 bg-gray-50 rounded-lg p-0.5">
-              {statusOptions.map((s) => (
-                <button key={s} onClick={() => setStatusFilter(s)}
-                  className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors whitespace-nowrap ${statusFilter === s ? "bg-white shadow-sm text-blue-600 font-semibold" : "text-gray-500 hover:text-gray-700"}`}>
-                  {s === "all" ? "All" : s.replace(/_/g, " ")}
-                </button>
-              ))}
-            </div>
-          </div>
+          <FilterDropdown
+            value={statusFilter}
+            onChange={setStatusFilter}
+            options={statusOptions.map((s) => ({ value: s, label: s === "all" ? "All" : s.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase()) }))}
+            placeholder="Status"
+            accentColor="text-blue-600"
+          />
         </div>
 
         {/* Create Dialog */}
@@ -749,7 +750,7 @@ export default function ProjectsPage() {
                 <div className="flex flex-wrap items-center gap-2">
                   <div className="p-1.5 bg-white/20 rounded-lg"><FolderPlus className="h-4 w-4 text-white" /></div>
                   <div>
-                    <h2 className="text-base font-semibold text-white">New Project</h2>
+                    <h2 className="text-base font-semibold text-white">{t("addNewProject")}</h2>
                     <p className="text-xs text-indigo-100">Set up a new project for a client</p>
                   </div>
                 </div>
@@ -783,8 +784,8 @@ export default function ProjectsPage() {
               )}
               <ProjectFormFields reg={regCreate} />
               <div className="flex justify-end gap-2 pt-2">
-                <Button type="button" variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
-                <Button type="submit" disabled={createMutation.isPending} className="bg-indigo-600 hover:bg-indigo-700 text-white">{createMutation.isPending ? "Saving..." : "Create"}</Button>
+                <Button type="button" variant="outline" onClick={() => setOpen(false)}>{t("cancel")}</Button>
+                <Button type="submit" disabled={createMutation.isPending} className="bg-indigo-600 hover:bg-indigo-700 text-white">{createMutation.isPending ? `${t("save")}...` : t("save")}</Button>
               </div>
             </form>
           </DialogContent>
@@ -793,7 +794,7 @@ export default function ProjectsPage() {
         {/* Edit Dialog */}
         <Dialog open={editOpen} onOpenChange={setEditOpen}>
           <DialogContent className="w-[calc(100vw-2rem)] max-w-lg">
-            <DialogHeader><DialogTitle>Edit Project</DialogTitle></DialogHeader>
+            <DialogHeader><DialogTitle>{t("editProject")}</DialogTitle></DialogHeader>
             {editTarget && (
               <form
                 onSubmit={handleEdit((d) => updateMutation.mutate({
@@ -808,8 +809,8 @@ export default function ProjectsPage() {
               >
                 <ProjectFormFields reg={regEdit} />
                 <div className="flex justify-end gap-2 pt-2">
-                  <Button type="button" variant="outline" onClick={() => setEditOpen(false)}>Cancel</Button>
-                  <Button type="submit" disabled={updateMutation.isPending}>{updateMutation.isPending ? "Saving..." : "Save"}</Button>
+                  <Button type="button" variant="outline" onClick={() => setEditOpen(false)}>{t("cancel")}</Button>
+                  <Button type="submit" disabled={updateMutation.isPending}>{updateMutation.isPending ? `${t("save")}...` : t("save")}</Button>
                 </div>
               </form>
             )}
@@ -817,7 +818,7 @@ export default function ProjectsPage() {
         </Dialog>
 
         {view === "table" && (
-          <DataTable columns={columns} data={filtered} isLoading={isLoading} emptyMessage="No projects found."
+          <DataTable columns={columns} data={filtered} isLoading={isLoading} emptyMessage={t("noData")}
             onRowClick={(row) => router.push(`/projects/${row.id}`)}
             renderHoverCard={(row) => (
               <ProjectHoverCard
@@ -855,7 +856,7 @@ export default function ProjectsPage() {
       <ConfirmDialog
         open={confirmOpen}
         onOpenChange={setConfirmOpen}
-        title="Delete Project"
+        title={`${t("delete")} ${t("projects")}`}
         description={`Are you sure you want to delete "${confirmTarget?.name}"? This action cannot be undone.`}
         onConfirm={() => { if (confirmTarget) { deleteMutation.mutate(confirmTarget.id); setConfirmOpen(false); } }}
         loading={deleteMutation.isPending}

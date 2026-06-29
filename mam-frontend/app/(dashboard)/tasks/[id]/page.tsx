@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import type { TaskDetail, Employee, Project, ShootingBrief, TaskAttachment, TimeEntry } from "@/types";
+import { useTranslation } from "@/hooks/useTranslation";
 import { useAuthStore } from "@/store/auth";
 
 const IMAGE_EXTENSIONS = new Set(["jpg", "jpeg", "png", "gif", "webp", "svg"]);
@@ -131,6 +132,7 @@ function fmtDateTime(d?: string | null): string {
 }
 
 export default function TaskDetailPage() {
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const qc = useQueryClient();
@@ -169,7 +171,7 @@ export default function TaskDetailPage() {
 
   const { data: employees } = useQuery<Employee[]>({
     queryKey: ["employees"],
-    queryFn: () => get("/employees/").catch(() => []),
+    queryFn: () => get<Employee[]>("/employees/").catch(() => [] as Employee[]),
     staleTime: 60000,
   });
 

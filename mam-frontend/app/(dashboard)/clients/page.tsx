@@ -17,9 +17,11 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { Plus, Pencil, Trash2, Building2, Link } from "lucide-react";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
+import { FilterDropdown } from "@/components/shared/FilterDropdown";
 import { ClientHoverCard } from "@/components/shared/HoverCards";
 import type { Client } from "@/types";
 import { useAuthStore } from "@/store/auth";
+import { useTranslation } from "@/hooks/useTranslation";
 
 const SERVICES = [
   "Social Media Management",
@@ -53,6 +55,7 @@ export default function ClientsPage() {
   const qc = useQueryClient();
   const router = useRouter();
   const { user, hasPermission } = useAuthStore();
+  const { t } = useTranslation();
   const canViewFinance = user?.is_superuser || hasPermission("view_finance");
 
   const { data, isLoading } = useQuery<Client[]>({
@@ -141,25 +144,25 @@ export default function ClientsPage() {
       ),
     },
     {
-      key: "client_code", label: "Code",
+      key: "client_code", label: t("clientCode"),
       render: (row) => row.client_code ? (
         <span className="font-mono text-xs bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded">{row.client_code}</span>
       ) : "—",
     },
     { key: "company_name", label: "Company", sortable: true },
-    { key: "contact_person", label: "Contact Person", sortable: true },
-    { key: "phone", label: "Phone" },
-    { key: "email", label: "Email", sortable: true },
-    { key: "industry", label: "Industry", sortable: true },
+    { key: "contact_person", label: t("contactPerson"), sortable: true },
+    { key: "phone", label: t("phone") },
+    { key: "email", label: t("email"), sortable: true },
+    { key: "industry", label: t("industry"), sortable: true },
     {
-      key: "service_type", label: "Service", sortable: true,
+      key: "service_type", label: t("serviceType"), sortable: true,
       render: (row) => row.service_type ? (
         <Badge variant="outline" className="text-xs">{row.service_type}</Badge>
       ) : "—",
     },
-    { key: "status", label: "Status", sortable: true, render: (row) => <StatusBadge value={row.status} /> },
+    { key: "status", label: t("status"), sortable: true, render: (row) => <StatusBadge value={row.status} /> },
     ...(canViewFinance ? [{
-      key: "monthly_value", label: "Monthly Value", sortable: true,
+      key: "monthly_value", label: t("monthlyValue"), sortable: true,
       render: (row: Client) => row.monthly_value ? (
         <span className="text-emerald-600 font-medium">${Number(row.monthly_value).toLocaleString()}</span>
       ) : "—",
@@ -199,31 +202,31 @@ export default function ClientsPage() {
         <Label>Company Name *</Label>
         <Input {...reg("company_name", { required: true })} className="mt-1" />
       </div>
-      <div><Label>Contact Person</Label><Input {...reg("contact_person")} className="mt-1" /></div>
-      <div><Label>Email</Label><Input type="email" {...reg("email")} className="mt-1" /></div>
-      <div><Label>Phone</Label><Input {...reg("phone")} className="mt-1" /></div>
-      <div><Label>Industry</Label><Input {...reg("industry")} className="mt-1" /></div>
+      <div><Label>{t("contactPerson")}</Label><Input {...reg("contact_person")} className="mt-1" /></div>
+      <div><Label>{t("email")}</Label><Input type="email" {...reg("email")} className="mt-1" /></div>
+      <div><Label>{t("phone")}</Label><Input {...reg("phone")} className="mt-1" /></div>
+      <div><Label>{t("industry")}</Label><Input {...reg("industry")} className="mt-1" /></div>
       <div>
-        <Label>Service Type</Label>
+        <Label>{t("serviceType")}</Label>
         <NativeSelect {...reg("service_type")} className="mt-1">
           <option value="">Select service</option>
           {SERVICES.map((s) => <option key={s} value={s}>{s}</option>)}
         </NativeSelect>
       </div>
       <div>
-        <Label>Status</Label>
+        <Label>{t("status")}</Label>
         <NativeSelect {...reg("status")} className="mt-1">
           {["active", "inactive", "prospect"].map((s) => <option key={s} value={s}>{s}</option>)}
         </NativeSelect>
       </div>
-      {canViewFinance && <div><Label>Monthly Value ($)</Label><Input type="number" step="0.01" {...reg("monthly_value")} className="mt-1" /></div>}
-      <div className="col-span-2"><Label>Notes</Label><Input {...reg("notes")} className="mt-1" /></div>
+      {canViewFinance && <div><Label>{t("monthlyValue")} ($)</Label><Input type="number" step="0.01" {...reg("monthly_value")} className="mt-1" /></div>}
+      <div className="col-span-2"><Label>{t("notes")}</Label><Input {...reg("notes")} className="mt-1" /></div>
     </div>
   );
 
   return (
     <>
-      <TopBar title="Clients" />
+      <TopBar title={t("clients")} />
       <main className="flex-1 p-3 sm:p-6 space-y-4 bg-gray-50 min-h-full">
         {/* ── Toolbar ── */}
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-3 space-y-2.5">
@@ -233,17 +236,16 @@ export default function ClientsPage() {
             <span className="text-xs text-gray-400 font-medium whitespace-nowrap">{filtered.length} results</span>
             <div className="h-4 w-px bg-gray-200" />
             <Button size="sm" className="h-8" onClick={() => { resetCreate(); setOpen(true); }}>
-              <Plus className="h-3.5 w-3.5 mr-1" /> New Client
+              <Plus className="h-3.5 w-3.5 mr-1" /> {t("addNewClient")}
             </Button>
           </div>
-          <div className="flex gap-0.5 bg-gray-50 rounded-lg p-0.5">
-            {statusOptions.map((s) => (
-              <button key={s} onClick={() => setStatusFilter(s)}
-                className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors whitespace-nowrap ${statusFilter === s ? "bg-white shadow-sm text-blue-600 font-semibold" : "text-gray-500 hover:text-gray-700"}`}>
-                {s === "all" ? "All" : s.charAt(0).toUpperCase() + s.slice(1)}
-              </button>
-            ))}
-          </div>
+          <FilterDropdown
+            value={statusFilter}
+            onChange={setStatusFilter}
+            options={statusOptions.map((s) => ({ value: s, label: s === "all" ? "All" : s.charAt(0).toUpperCase() + s.slice(1) }))}
+            placeholder="Status"
+            accentColor="text-blue-600"
+          />
         </div>
 
         {/* Create Dialog */}
@@ -267,8 +269,8 @@ export default function ClientsPage() {
             >
               <FormFields reg={regCreate} />
               <div className="flex justify-end gap-2 pt-2">
-                <Button type="button" variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
-                <Button type="submit" disabled={createMutation.isPending} className="bg-emerald-600 hover:bg-emerald-700 text-white">{createMutation.isPending ? "Saving…" : "Create"}</Button>
+                <Button type="button" variant="outline" onClick={() => setOpen(false)}>{t("cancel")}</Button>
+                <Button type="submit" disabled={createMutation.isPending} className="bg-emerald-600 hover:bg-emerald-700 text-white">{createMutation.isPending ? "Saving..." : t("create")}</Button>
               </div>
             </form>
           </DialogContent>
@@ -277,7 +279,7 @@ export default function ClientsPage() {
         {/* Edit Dialog */}
         <Dialog open={editOpen} onOpenChange={setEditOpen}>
           <DialogContent className="w-[calc(100vw-2rem)] max-w-lg">
-            <DialogHeader><DialogTitle>Edit Client</DialogTitle></DialogHeader>
+            <DialogHeader><DialogTitle>{t("editClient")}</DialogTitle></DialogHeader>
             {editTarget && (
               <form
                 onSubmit={handleEdit((d) => updateMutation.mutate({
@@ -288,8 +290,8 @@ export default function ClientsPage() {
               >
                 <FormFields reg={regEdit} />
                 <div className="flex justify-end gap-2 pt-2">
-                  <Button type="button" variant="outline" onClick={() => setEditOpen(false)}>Cancel</Button>
-                  <Button type="submit" disabled={updateMutation.isPending}>{updateMutation.isPending ? "Saving…" : "Save"}</Button>
+                  <Button type="button" variant="outline" onClick={() => setEditOpen(false)}>{t("cancel")}</Button>
+                  <Button type="submit" disabled={updateMutation.isPending}>{updateMutation.isPending ? "Saving..." : t("save")}</Button>
                 </div>
               </form>
             )}
@@ -300,7 +302,7 @@ export default function ClientsPage() {
           columns={columns}
           data={filtered}
           isLoading={isLoading}
-          emptyMessage="No clients found."
+          emptyMessage={t("noData")}
           onRowClick={(row) => router.push(`/clients/${row.id}`)}
           renderHoverCard={(row) => <ClientHoverCard client={row} />}
           exportable
@@ -311,7 +313,7 @@ export default function ClientsPage() {
       <ConfirmDialog
         open={confirmOpen}
         onOpenChange={setConfirmOpen}
-        title="Delete Client"
+        title={`${t("delete")} ${t("clients")}`}
         description={`Are you sure you want to delete ${confirmTarget?.company_name}? This action cannot be undone.`}
         onConfirm={() => { if (confirmTarget) { deleteMutation.mutate(confirmTarget.id); setConfirmOpen(false); } }}
         loading={deleteMutation.isPending}

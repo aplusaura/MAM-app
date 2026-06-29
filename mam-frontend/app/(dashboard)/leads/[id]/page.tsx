@@ -17,6 +17,7 @@ import { ArrowLeft, Pencil, Trash2, UserCheck, Mail, Phone, DollarSign, Calendar
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { useForm } from "react-hook-form";
+import { useTranslation } from "@/hooks/useTranslation";
 import type { Lead } from "@/types";
 
 const STAGE_DOT: Record<string, string> = {
@@ -63,6 +64,7 @@ interface EditForm {
 }
 
 export default function LeadDetailPage() {
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const qc = useQueryClient();
@@ -128,15 +130,15 @@ export default function LeadDetailPage() {
 
   if (isLoading) return (
     <>
-      <TopBar title="Lead Detail" />
-      <main className="flex-1 p-3 sm:p-6"><p className="text-muted-foreground">Loading...</p></main>
+      <TopBar title={t("leadDetails")} />
+      <main className="flex-1 p-3 sm:p-6"><p className="text-muted-foreground">{t("loading")}...</p></main>
     </>
   );
 
   if (!lead) return (
     <>
-      <TopBar title="Lead Detail" />
-      <main className="flex-1 p-3 sm:p-6"><p className="text-muted-foreground">Lead not found.</p></main>
+      <TopBar title={t("leadDetails")} />
+      <main className="flex-1 p-3 sm:p-6"><p className="text-muted-foreground">{t("noData")}</p></main>
     </>
   );
 
@@ -150,19 +152,19 @@ export default function LeadDetailPage() {
         {/* Back + action buttons */}
         <div className="flex items-center justify-between flex-wrap gap-2">
           <Button variant="ghost" size="sm" onClick={() => router.push("/leads")}>
-            <ArrowLeft className="h-4 w-4 mr-2" /> Back to Leads
+            <ArrowLeft className="h-4 w-4 mr-2" /> {t("leads")}
           </Button>
           <div className="flex items-center gap-2">
             {lead.stage === "won" && (
               <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700 text-white" onClick={() => setConvertOpen(true)}>
-                <UserCheck className="h-4 w-4 mr-1.5" /> Convert to Client
+                <UserCheck className="h-4 w-4 mr-1.5" /> {t("convertToClient")}
               </Button>
             )}
             <Button variant="outline" size="sm" onClick={openEdit}>
-              <Pencil className="h-4 w-4 mr-1.5" /> Edit
+              <Pencil className="h-4 w-4 mr-1.5" /> {t("edit")}
             </Button>
             <Button variant="outline" size="sm" className="text-red-600 hover:text-red-700 border-red-200 hover:border-red-300" onClick={() => setDeleteOpen(true)}>
-              <Trash2 className="h-4 w-4 mr-1.5" /> Delete
+              <Trash2 className="h-4 w-4 mr-1.5" /> {t("delete")}
             </Button>
           </div>
         </div>
@@ -183,7 +185,7 @@ export default function LeadDetailPage() {
               </div>
               {lead.expected_budget && (
                 <div className="text-right">
-                  <p className="text-xs font-medium text-gray-400 uppercase tracking-wide">Budget</p>
+                  <p className="text-xs font-medium text-gray-400 uppercase tracking-wide">{t("budget")}</p>
                   <p className="text-2xl font-bold text-emerald-600">
                     ${Number(lead.expected_budget).toLocaleString()}
                   </p>
@@ -233,13 +235,13 @@ export default function LeadDetailPage() {
             <CardContent className="space-y-3">
               {lead.interested_service && (
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">Service</span>
+                  <span className="text-muted-foreground">{t("type")}</span>
                   <Badge variant="outline" className="text-xs">{lead.interested_service}</Badge>
                 </div>
               )}
               {lead.expected_budget && (
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground flex items-center gap-1"><DollarSign className="h-3.5 w-3.5" />Budget</span>
+                  <span className="text-muted-foreground flex items-center gap-1"><DollarSign className="h-3.5 w-3.5" />{t("budget")}</span>
                   <span className="font-medium text-emerald-600">${Number(lead.expected_budget).toLocaleString()}</span>
                 </div>
               )}
@@ -263,7 +265,7 @@ export default function LeadDetailPage() {
         <Card className="rounded-xl border-gray-100 shadow-sm">
           <CardHeader className="pb-2">
             <CardTitle className="text-xs font-semibold text-gray-500 uppercase tracking-wide flex items-center gap-2">
-              <FileText className="h-4 w-4" />Notes
+              <FileText className="h-4 w-4" />{t("notes")}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -277,7 +279,7 @@ export default function LeadDetailPage() {
       {/* Edit Dialog */}
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
         <DialogContent className="w-[calc(100vw-2rem)] max-w-lg">
-          <DialogHeader><DialogTitle>Edit Lead</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>{t("editLead")}</DialogTitle></DialogHeader>
           <form
             onSubmit={handleSubmit((d) =>
               updateMutation.mutate({
@@ -288,11 +290,11 @@ export default function LeadDetailPage() {
             className="space-y-3"
           >
             <div className="grid grid-cols-2 gap-3">
-              <div><Label>Lead Name *</Label><Input {...register("lead_name", { required: true })} className="mt-1" /></div>
-              <div><Label>Company</Label><Input {...register("company_name")} className="mt-1" /></div>
-              <div><Label>Contact Person</Label><Input {...register("contact_person")} className="mt-1" /></div>
-              <div><Label>Phone</Label><Input {...register("phone")} className="mt-1" /></div>
-              <div><Label>Email</Label><Input type="email" {...register("email")} className="mt-1" /></div>
+              <div><Label>{t("name")} *</Label><Input {...register("lead_name", { required: true })} className="mt-1" /></div>
+              <div><Label>{t("name")}</Label><Input {...register("company_name")} className="mt-1" /></div>
+              <div><Label>{t("name")}</Label><Input {...register("contact_person")} className="mt-1" /></div>
+              <div><Label>{t("phone")}</Label><Input {...register("phone")} className="mt-1" /></div>
+              <div><Label>{t("email")}</Label><Input type="email" {...register("email")} className="mt-1" /></div>
               <div>
                 <Label>Interested Service</Label>
                 <NativeSelect {...register("interested_service")} className="mt-1">
@@ -301,18 +303,18 @@ export default function LeadDetailPage() {
                 </NativeSelect>
               </div>
               <div>
-                <Label>Stage</Label>
+                <Label>{t("stage")}</Label>
                 <NativeSelect {...register("stage")} className="mt-1">
                   {STAGES.map((s) => <option key={s} value={s}>{stageLabel(s)}</option>)}
                 </NativeSelect>
               </div>
-              <div><Label>Expected Budget ($)</Label><Input type="number" {...register("expected_budget")} className="mt-1" /></div>
-              <div className="col-span-2"><Label>Notes</Label><Input {...register("notes")} className="mt-1" /></div>
+              <div><Label>{t("budget")} ($)</Label><Input type="number" {...register("expected_budget")} className="mt-1" /></div>
+              <div className="col-span-2"><Label>{t("notes")}</Label><Input {...register("notes")} className="mt-1" /></div>
             </div>
             <div className="flex justify-end gap-2 pt-2">
-              <Button type="button" variant="outline" onClick={() => setEditOpen(false)}>Cancel</Button>
+              <Button type="button" variant="outline" onClick={() => setEditOpen(false)}>{t("cancel")}</Button>
               <Button type="submit" disabled={updateMutation.isPending}>
-                {updateMutation.isPending ? "Saving..." : "Save Changes"}
+                {updateMutation.isPending ? `${t("save")}...` : t("save")}
               </Button>
             </div>
           </form>
@@ -322,7 +324,7 @@ export default function LeadDetailPage() {
       {/* Convert to Client Dialog */}
       <Dialog open={convertOpen} onOpenChange={setConvertOpen}>
         <DialogContent className="w-[calc(100vw-2rem)] max-w-md">
-          <DialogHeader><DialogTitle>Convert Lead to Client</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>{t("convertToClient")}</DialogTitle></DialogHeader>
           <form
             onSubmit={(e) => {
               e.preventDefault();
@@ -341,19 +343,19 @@ export default function LeadDetailPage() {
           >
             <div className="grid grid-cols-2 gap-3">
               <div className="col-span-2">
-                <Label>Company Name *</Label>
+                <Label>{t("name")} *</Label>
                 <Input name="company_name" defaultValue={lead.company_name ?? lead.lead_name} required className="mt-1" />
               </div>
               <div>
-                <Label>Contact Person</Label>
+                <Label>{t("name")}</Label>
                 <Input name="contact_person" defaultValue={lead.contact_person ?? ""} className="mt-1" />
               </div>
               <div>
-                <Label>Phone</Label>
+                <Label>{t("phone")}</Label>
                 <Input name="phone" defaultValue={lead.phone ?? ""} className="mt-1" />
               </div>
               <div className="col-span-2">
-                <Label>Email</Label>
+                <Label>{t("email")}</Label>
                 <Input name="email" type="email" defaultValue={lead.email ?? ""} className="mt-1" />
               </div>
               <div className="col-span-2">
@@ -362,9 +364,9 @@ export default function LeadDetailPage() {
               </div>
             </div>
             <div className="flex justify-end gap-2 pt-2">
-              <Button type="button" variant="outline" onClick={() => setConvertOpen(false)}>Cancel</Button>
+              <Button type="button" variant="outline" onClick={() => setConvertOpen(false)}>{t("cancel")}</Button>
               <Button type="submit" disabled={convertMutation.isPending} className="bg-emerald-600 hover:bg-emerald-700 text-white">
-                {convertMutation.isPending ? "Converting..." : "Convert to Client"}
+                {convertMutation.isPending ? `${t("convertToClient")}...` : t("convertToClient")}
               </Button>
             </div>
           </form>
@@ -375,7 +377,7 @@ export default function LeadDetailPage() {
       <ConfirmDialog
         open={deleteOpen}
         onOpenChange={setDeleteOpen}
-        title="Delete Lead"
+        title={`${t("delete")} ${t("leads")}`}
         description={`Are you sure you want to delete ${lead.lead_name}? This action cannot be undone.`}
         onConfirm={() => deleteMutation.mutate()}
         loading={deleteMutation.isPending}

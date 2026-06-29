@@ -11,6 +11,7 @@ import { Send, MessageSquare, Trash2 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
 import type { DirectMessage, Conversation } from "@/types";
+import { useTranslation } from "@/hooks/useTranslation";
 
 interface Contact {
   user_id: number;
@@ -21,6 +22,7 @@ interface Contact {
 
 export default function MessagesPage() {
   const { user: me } = useAuthStore();
+  const { t } = useTranslation();
   const qc = useQueryClient();
   const [activePartnerId, setActivePartnerId] = useState<number | null>(null);
   const [text, setText] = useState("");
@@ -100,12 +102,12 @@ export default function MessagesPage() {
 
   return (
     <>
-      <TopBar title="Messages" />
+      <TopBar title={t("messages")} />
       <main className="flex-1 flex overflow-hidden bg-gray-50">
         {/* Sidebar */}
         <div className="w-64 shrink-0 border-r border-gray-100 bg-white flex flex-col">
           <div className="px-4 py-3 border-b border-gray-100">
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Conversations</p>
+            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">{t("conversations")}</p>
           </div>
           <div className="flex-1 overflow-y-auto divide-y divide-gray-50">
             {(conversations ?? []).map((conv) => (
@@ -203,7 +205,7 @@ export default function MessagesPage() {
                 );
               })}
               {(!messages || messages.length === 0) && (
-                <p className="text-sm text-gray-400 text-center py-8">No messages yet. Say hi!</p>
+                <p className="text-sm text-gray-400 text-center py-8">{t("noMessages")}</p>
               )}
               <div ref={bottomRef} />
             </div>
@@ -219,7 +221,7 @@ export default function MessagesPage() {
                 <Input
                   value={text}
                   onChange={(e) => setText(e.target.value)}
-                  placeholder="Type a message..."
+                  placeholder={t("typeMessage")}
                   className="flex-1"
                 />
                 <Button type="submit" size="icon" disabled={!text.trim() || sendMutation.isPending}>
@@ -240,7 +242,7 @@ export default function MessagesPage() {
           <div className="flex-1 flex items-center justify-center">
             <div className="text-center text-gray-400">
               <MessageSquare className="h-12 w-12 mx-auto mb-3 opacity-30" />
-              <p className="text-sm">Select a conversation to start messaging</p>
+              <p className="text-sm">{t("selectConversation")}</p>
             </div>
           </div>
         )}

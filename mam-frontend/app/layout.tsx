@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Cairo } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
+import { HtmlLangDir } from "@/components/shared/HtmlLangDir";
 
 const cairo = Cairo({
   variable: "--font-cairo",
@@ -21,9 +22,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" dir="ltr" suppressHydrationWarning>
       <body className={`${cairo.variable} antialiased`}>
-        <Providers>{children}</Providers>
+        <Providers>
+          <HtmlLangDir />
+          {children}
+        </Providers>
       </body>
     </html>
   );

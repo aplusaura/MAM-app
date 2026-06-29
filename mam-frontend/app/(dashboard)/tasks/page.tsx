@@ -20,12 +20,14 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { Plus, Zap, Pencil, Trash2, RotateCcw, FileText, LayoutList, LayoutGrid, CalendarDays, CheckSquare, Timer, Clock, Play, Square, Link } from "lucide-react";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
+import { FilterDropdown } from "@/components/shared/FilterDropdown";
 import { TaskHoverCard } from "@/components/shared/HoverCards";
 import { KanbanBoard, KanbanItem, KanbanColumn } from "@/components/shared/KanbanBoard";
 import { CalendarView, CalendarItem } from "@/components/shared/CalendarView";
 import { PageTransition } from "@/components/shared/PageTransition";
 import type { Task, Project, Employee, ShootingBrief } from "@/types";
 import { format } from "date-fns";
+import { useTranslation } from "@/hooks/useTranslation";
 import confetti from "canvas-confetti";
 
 const ACTIVE_TIMER_KEY = "mam_active_timer";
@@ -104,6 +106,7 @@ interface BriefForm {
 }
 
 export default function TasksPage() {
+  const { t } = useTranslation();
   const { user } = useAuthStore();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -150,7 +153,7 @@ export default function TasksPage() {
 
   const { data: employees } = useQuery<Employee[]>({
     queryKey: ["employees"],
-    queryFn: () => get("/employees/").catch(() => []),
+    queryFn: () => get<Employee[]>("/employees/").catch(() => [] as Employee[]),
   });
 
   const { data: employeeNames } = useQuery<{ id: number; user_id: number | null; full_name: string }[]>({
@@ -702,33 +705,41 @@ export default function TasksPage() {
             </Button>
           </div>
           {/* Row 2: Status | Date | Type */}
-          <div className="flex items-center gap-1.5 flex-wrap">
-            <div className="flex gap-0.5 bg-gray-50 rounded-lg p-0.5">
-              {(["all","todo","in_progress","review","revisions_needed","done","overdue"] as const).map((v) => (
-                <button key={v} onClick={() => setStatusFilter(v)}
-                  className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors whitespace-nowrap ${statusFilter === v ? "bg-white shadow-sm text-blue-600 font-semibold" : "text-gray-500 hover:text-gray-700"}`}>
-                  {v === "all" ? "All" : v === "in_progress" ? "In Progress" : v === "revisions_needed" ? "Revisions" : v.charAt(0).toUpperCase() + v.slice(1)}
-                </button>
-              ))}
-            </div>
-            <div className="h-4 w-px bg-gray-200" />
-            <div className="flex gap-0.5 bg-gray-50 rounded-lg p-0.5">
-              {(["all","today","this_week","this_month"] as const).map((v) => (
-                <button key={v} onClick={() => setDateFilter(v)}
-                  className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors whitespace-nowrap ${dateFilter === v ? "bg-white shadow-sm text-indigo-600 font-semibold" : "text-gray-500 hover:text-gray-700"}`}>
-                  {v === "all" ? "All Dates" : v === "today" ? "Today" : v === "this_week" ? "This Week" : "This Month"}
-                </button>
-              ))}
-            </div>
-            <div className="h-4 w-px bg-gray-200" />
-            <div className="flex gap-0.5 bg-gray-50 rounded-lg p-0.5 flex-wrap">
-              {([{ value: "all", label: "All Types" }, ...TASK_TYPES] as const).map((v) => (
-                <button key={v.value} onClick={() => setTypeFilter(v.value)}
-                  className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors whitespace-nowrap ${typeFilter === v.value ? "bg-white shadow-sm text-violet-600 font-semibold" : "text-gray-500 hover:text-gray-700"}`}>
-                  {v.label}
-                </button>
-              ))}
-            </div>
+          <div className="flex items-center gap-2 flex-wrap">
+            <FilterDropdown
+              value={statusFilter}
+              onChange={setStatusFilter}
+              options={[
+                { value: "all", label: "All" },
+                { value: "todo", label: "Todo" },
+                { value: "in_progress", label: "In Progress" },
+                { value: "review", label: "Review" },
+                { value: "revisions_needed", label: "Revisions" },
+                { value: "done", label: "Done" },
+                { value: "overdue", label: "Overdue" },
+              ]}
+              placeholder="Status"
+              accentColor="text-blue-600"
+            />
+            <FilterDropdown
+              value={dateFilter}
+              onChange={setDateFilter}
+              options={[
+                { value: "all", label: "All Dates" },
+                { value: "today", label: "Today" },
+                { value: "this_week", label: "This Week" },
+                { value: "this_month", label: "This Month" },
+              ]}
+              placeholder="Date"
+              accentColor="text-indigo-600"
+            />
+            <FilterDropdown
+              value={typeFilter}
+              onChange={setTypeFilter}
+              options={[{ value: "all", label: "All Types" }, ...TASK_TYPES]}
+              placeholder="Type"
+              accentColor="text-violet-600"
+            />
           </div>
         </div>
 
