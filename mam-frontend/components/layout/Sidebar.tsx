@@ -1,6 +1,7 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
+import Link from "next/link";
 import { cn } from "@/lib/utils";
 import {
   LayoutDashboard,
@@ -89,9 +90,10 @@ function SidebarContent() {
             const label = t(labelKey);
             const active = pathname === href || pathname.startsWith(href + "/");
             return (
-              <a
+              <Link
                 key={href}
                 href={href}
+                prefetch
                 title={!open ? label : undefined}
                 className={cn(
                   "flex items-center gap-3 rounded-lg px-2 py-2 text-sm font-medium transition-colors",
@@ -108,7 +110,7 @@ function SidebarContent() {
                 >
                   {label}
                 </motion.span>
-              </a>
+              </Link>
             );
           })}
         </nav>

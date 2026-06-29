@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 
 /* ─── icon helper (inline SVG) ─── */
 function Icon({ d, className = "w-6 h-6" }: { d: string; className?: string }) {
@@ -235,8 +236,8 @@ export default function PresentationPage() {
             ))}
           </div>
           <div className="flex items-center gap-3">
-            <a href="/login" className="hidden sm:inline-flex px-4 py-2 text-sm font-medium text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">Sign In</a>
-            <a href="/login" className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-md shadow-blue-600/25 transition-colors">Get Started</a>
+            <Link href="/login" className="hidden sm:inline-flex px-4 py-2 text-sm font-medium text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">Sign In</Link>
+            <Link href="/login" className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-md shadow-blue-600/25 transition-colors">Get Started</Link>
             <button onClick={() => setMobileNav(!mobileNav)} className="md:hidden p-2 rounded-lg hover:bg-gray-100">
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" /></svg>
             </button>
@@ -268,9 +269,9 @@ export default function PresentationPage() {
               CRM, project management, task workflows, team operations, finance tracking, and AI-powered insights — unified in one platform designed for how agencies actually work.
             </p>
             <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
-              <a href="/login" className="w-full sm:w-auto px-8 py-3.5 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-lg shadow-blue-600/25 transition-all hover:shadow-xl hover:shadow-blue-600/30 flex items-center justify-center gap-2">
+              <Link href="/login" className="w-full sm:w-auto px-8 py-3.5 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-lg shadow-blue-600/25 transition-all hover:shadow-xl hover:shadow-blue-600/30 flex items-center justify-center gap-2">
                 Start Managing <Icon d={ICONS.arrow} className="w-4 h-4" />
-              </a>
+              </Link>
               <button onClick={() => scrollTo("overview")} className="w-full sm:w-auto px-8 py-3.5 text-sm font-semibold text-gray-700 bg-white hover:bg-gray-50 rounded-xl border border-gray-200 transition-colors flex items-center justify-center gap-2">
                 <Icon d={ICONS.play} className="w-4 h-4" /> See How It Works
               </button>
@@ -868,9 +869,9 @@ export default function PresentationPage() {
             This is not just a management tool. It is a complete operating system for modern marketing and media teams — connecting every workflow, every team member, and every decision into one seamless experience.
           </p>
           <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
-            <a href="/login" className="w-full sm:w-auto px-8 py-4 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-lg shadow-blue-600/25 transition-all hover:shadow-xl flex items-center justify-center gap-2">
+            <Link href="/login" className="w-full sm:w-auto px-8 py-4 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-xl shadow-lg shadow-blue-600/25 transition-all hover:shadow-xl flex items-center justify-center gap-2">
               Get Started Now <Icon d={ICONS.arrow} className="w-4 h-4" />
-            </a>
+            </Link>
             <button onClick={() => scrollTo("overview")} className="w-full sm:w-auto px-8 py-4 text-sm font-semibold text-gray-700 bg-white hover:bg-gray-50 rounded-xl border border-gray-200 transition-colors">
               Explore Features
             </button>

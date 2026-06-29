@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import type { Employee, Client, Project, Invoice, ActivityLog } from "@/types";
 import { useTranslation } from "@/hooks/useTranslation";
+import Link from "next/link";
 
 interface ChangePasswordForm {
   current_password: string;
@@ -427,9 +428,9 @@ export default function SettingsPage() {
                 ))}
               </div>
               <div className="px-6 py-3 border-t border-gray-50 flex justify-end">
-                <a href="/settings/roles" className="text-xs text-blue-600 hover:underline flex items-center gap-1">
+                <Link href="/settings/roles" className="text-xs text-blue-600 hover:underline flex items-center gap-1">
                   <Shield className="h-3.5 w-3.5" /> Manage Roles & Permissions →
-                </a>
+                </Link>
               </div>
             </div>
           )}

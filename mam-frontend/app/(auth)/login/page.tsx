@@ -40,7 +40,7 @@ export default function LoginPage() {
     try {
       const res = await post<TokenResponse>("/auth/login", data);
       setTokens(res.access_token, res.refresh_token);
-      window.location.href = "/dashboard";
+      router.push("/dashboard");
     } catch (err: unknown) {
       toast.error(getErrorMessage(err));
     } finally {
